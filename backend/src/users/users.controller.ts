@@ -2,8 +2,9 @@ import { Controller, Get, Post, Body, Param, Put, Delete, ParseIntPipe } from '@
 import { UsersService } from './users.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { ApiTags } from '@nestjs/swagger';
 
-
+@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
