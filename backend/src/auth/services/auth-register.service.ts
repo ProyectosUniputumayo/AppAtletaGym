@@ -9,7 +9,6 @@ import { UserRoleEntity } from '../../roles/entities/user-role.entity.js';
 import { RegisterDto } from '../dtos/register.dto.js';
 import { EmailService } from '../../mails/mail.service.js';
 
-
 @Injectable()
 export class AuthRegisterService {
   constructor(
@@ -31,7 +30,7 @@ export class AuthRegisterService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // 1. Crear usuario (Sin username)
+    // 1. Crear usuario
     const newUser = this.userRepository.create({
       email: dto.email,
       password_hash: hashedPassword,
@@ -39,16 +38,19 @@ export class AuthRegisterService {
     });
     const savedUser = await this.userRepository.save(newUser);
 
+    // 2. Crear persona asociada (incluyendo el documentNumber / cédula)
     // 2. Crear persona asociada
     const newPerson = this.personRepository.create({
       user_id: savedUser.id,
+      documentNumber: dto.documentNumber ?? undefined, // Si viene vacío, pasa undefined
       firstName: dto.firstName,
       firstLastName: dto.firstLastName,
-      cellphone: dto.cellphone,
-      address: dto.address,
-      gender: dto.gender,
+      cellphone: dto.cellphone ?? undefined,
+      address: dto.address ?? undefined,
+      gender: dto.gender ?? undefined,
     });
     await this.personRepository.save(newPerson);
+
 
     // 3. Registrar en la tabla intermedia user_roles
     const newUserRole = this.userRoleRepository.create({
@@ -71,7 +73,6 @@ export class AuthRegisterService {
       });
     } catch (error) {
       console.error('No se pudo enviar el correo de bienvenida:', error);
-      // No detenemos el registro si falla el correo, pero queda registrado en consola
     }
 
     return { message: 'Usuario registrado exitosamente', userId: savedUser.id };

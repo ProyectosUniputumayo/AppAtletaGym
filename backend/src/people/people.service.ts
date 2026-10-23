@@ -11,7 +11,16 @@ export class PeopleService {
     private readonly personRepository: Repository<PersonEntity>,
   ) {}
 
-  async create(dto: { user_id: number; firstName: string; firstLastName: string; cellphone?: string; address?: string; gender?: string; avatarUrl?: string }) {
+  async create(dto: { 
+    user_id?: number; 
+    documentNumber?: string; // <--- Añadido aquí
+    firstName: string; 
+    firstLastName: string; 
+    cellphone?: string; 
+    address?: string; 
+    gender?: string; 
+    avatarUrl?: string 
+  }) {
     const newPerson = this.personRepository.create(dto);
     return await this.personRepository.save(newPerson);
   }
@@ -35,6 +44,18 @@ export class PeopleService {
     return persona;
   }
 
+  // NUEVO: Método útil para buscar clientes presenciales o digitales por su cédula en recepción
+  async obtenerPersonaPorDocumento(documentNumber: string): Promise<PersonEntity> {
+    const persona = await this.personRepository.findOne({
+      where: { documentNumber },
+      relations: { user: true },
+    });
+    if (!persona) {
+      throw new NotFoundException('Persona no encontrada con este número de documento');
+    }
+    return persona;
+  }
+
   async obtenerPersonaPorId(id: number): Promise<PersonEntity> {
     const persona = await this.personRepository.findOne({
       where: { id },
@@ -46,7 +67,7 @@ export class PeopleService {
     return persona;
   }
 
-  async actualizarPersona(idFromParam: number, dto: UpdatePeopleDto, currentUser: any) {
+  async actualizarPersona(idFromParam: number, dto: UpdatePeopleDto & { documentNumber?: string }, currentUser: any) {
     const isOwner = Number(idFromParam) === Number(currentUser.user_id);
     const isAdmin = currentUser.rolIds?.includes(1) || currentUser.roles?.includes('Admin');
 
@@ -59,6 +80,7 @@ export class PeopleService {
       throw new NotFoundException('Persona no encontrada');
     }
 
+    if (dto.documentNumber) persona.documentNumber = dto.documentNumber; // <--- Permitir actualizar cédula si es admin
     if (dto.firstName) persona.firstName = dto.firstName;
     if (dto.firstLastName) persona.firstLastName = dto.firstLastName;
     if (dto.cellphone) persona.cellphone = dto.cellphone;

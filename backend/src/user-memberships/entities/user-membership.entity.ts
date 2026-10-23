@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { UserEntity } from '../../users/entities/user.entity.js';
+
+import type { PersonEntity } from '../../people/entities/person.entity.js'; // Solo import type para TypeScript
 import { MembershipPlanEntity } from '../../membership-plans/entities/membership-plan.entity.js';
 
 export enum PaymentStatus {
@@ -13,9 +14,10 @@ export class UserMembershipEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => UserEntity, { eager: true, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user: UserEntity;
+
+  @ManyToOne('PersonEntity', (person: PersonEntity) => person.memberships, { eager: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'person_id' })
+  person: PersonEntity;
 
   @ManyToOne(() => MembershipPlanEntity, { eager: true, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'membership_plan_id' })
@@ -28,7 +30,7 @@ export class UserMembershipEntity {
   endDate: Date;
 
   @Column({ type: 'int', name: 'sessions_remaining', nullable: true })
-  sessionsRemaining?: number; 
+  sessionsRemaining?: number;
 
   @Column({ 
     type: 'enum', 

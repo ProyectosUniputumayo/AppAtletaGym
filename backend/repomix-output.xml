@@ -1,0 +1,2741 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  auth/
+    decorators/
+      roles.decorator.ts
+    dtos/
+      forgot-password.dto.ts
+      login.dto.ts
+      register.dto.ts
+      reset-password.dto.ts
+    guards/
+      jwt-auth.guard.ts
+      roles.guard.ts
+    services/
+      auth-login.service.ts
+      auth-password.service.ts
+      auth-register.service.ts
+    strategies/
+      jwt.strategy.ts
+    auth.controller.ts
+    auth.module.ts
+    auth.service.ts
+  config/
+    constants.ts
+  mails/
+    templates/
+      reset-password.hbs
+      welcome.hbs
+    mail.module.ts
+    mail.service.ts
+  membership-plans/
+    dtos/
+      create-membership-plan.dto.ts
+      update-membership-plan.dto.ts
+    entities/
+      membership-plan.entity.ts
+    membership-plans.controller.ts
+    membership-plans.module.ts
+    membership-plans.seeder.ts
+    membership-plans.service.ts
+  people/
+    dtos/
+      update-people.dto.ts
+    entities/
+      person.entity.ts
+    people.controller.ts
+    people.module.ts
+    people.service.ts
+  roles/
+    entities/
+      role.entity.ts
+      user-role.entity.ts
+    roles.controller.ts
+    roles.module.ts
+    roles.service.ts
+  user-memberships/
+    dtos/
+      create-user-membership.dto.ts
+    entities/
+      user-membership.entity.ts
+    user-memberships.controller.ts
+    user-memberships.module.ts
+    user-memberships.service.ts
+  users/
+    dto/
+      create-user.dto.ts
+      update-user.dto.ts
+    entities/
+      user.entity.ts
+    users.controller.ts
+    users.module.ts
+    users.service.ts
+  app.controller.spec.ts
+  app.controller.ts
+  app.module.ts
+  app.service.ts
+  main.ts
+test/
+  app.e2e-spec.ts
+.gitignore
+.oxlintrc.json
+.prettierrc
+nest-cli.json
+package.json
+README.md
+tsconfig.build.json
+tsconfig.json
+vitest.config.e2e.ts
+vitest.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/auth/decorators/roles.decorator.ts">
+import { SetMetadata } from '@nestjs/common';
+
+export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
+</file>
+
+<file path="src/auth/dtos/forgot-password.dto.ts">
+import { IsEmail, IsNotEmpty } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class ForgotPasswordDto {
+  @ApiProperty({ example: 'marlon@example.com', description: 'Correo electrónico registrado del usuario' })
+  @IsEmail({}, { message: 'El formato del correo electrónico no es válido' })
+  @IsNotEmpty({ message: 'El correo electrónico no puede estar vacío' })
+  email: string;
+}
+</file>
+
+<file path="src/auth/dtos/login.dto.ts">
+import { IsEmail, IsString, IsNotEmpty } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class LoginDto {
+  @ApiProperty({ example: 'marlon@example.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'securepassword123' })
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+}
+</file>
+
+<file path="src/auth/dtos/register.dto.ts">
+import { IsEmail, IsString, MinLength, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class RegisterDto {
+  @ApiProperty({ example: 'marlon@example.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'securepassword123' })
+  @IsString()
+  @MinLength(6)
+  @IsNotEmpty()
+  password: string;
+
+  // NUEVO: Cédula o documento de identidad para enlazarlo con la tabla people
+  @ApiPropertyOptional({ example: '1234567890' })
+  @IsOptional()
+  @IsString()
+  documentNumber?: string;
+
+  @ApiProperty({ example: 'Marlon' })
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @ApiProperty({ example: 'Moncayo' })
+  @IsString()
+  @IsNotEmpty()
+  firstLastName: string;
+
+  @ApiPropertyOptional({ example: '3101234567' })
+  @IsOptional()
+  @IsString()
+  cellphone?: string;
+
+  @ApiPropertyOptional({ example: 'Calle Principal #123, Mocoa' })
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @ApiPropertyOptional({ example: 'Masculino' })
+  @IsOptional()
+  @IsString()
+  gender?: string;
+
+  @ApiPropertyOptional({ example: 3, description: 'ID del rol inicial (ej. 3 para Atleta)' })
+  @IsOptional()
+  @IsNumber()
+  role_id?: number;
+}
+</file>
+
+<file path="src/auth/dtos/reset-password.dto.ts">
+import { IsString, IsNotEmpty, Length, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class ResetPasswordDto {
+  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6...', description: 'Token temporal devuelto en forgot-password' })
+  @IsString()
+  @IsNotEmpty({ message: 'El token es obligatorio' })
+  token: string;
+
+  @ApiProperty({ example: '4829', description: 'Código de verificación de 4 dígitos recibido por correo' })
+  @IsString()
+  @IsNotEmpty({ message: 'El código de verificación es obligatorio' })
+  @Length(4, 4, { message: 'El código debe tener exactamente 4 dígitos' })
+  code: string;
+
+  @ApiProperty({ example: 'newSecurePassword123', description: 'Nueva contraseña' })
+  @IsString()
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  @IsNotEmpty()
+  newPassword: string;
+}
+</file>
+
+<file path="src/auth/guards/jwt-auth.guard.ts">
+import { Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {}
+</file>
+
+<file path="src/auth/guards/roles.guard.ts">
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (!requiredRoles) {
+      return true; // Si no requiere roles específicos, permite el paso
+    }
+
+    const { user } = context.switchToHttp().getRequest();
+    
+    if (!user || !user.roles) {
+      throw new ForbiddenException('No tienes roles asignados');
+    }
+
+    const hasRole = requiredRoles.some((role) => user.roles.includes(role));
+    if (!hasRole) {
+      throw new ForbiddenException('No tienes permisos suficientes para realizar esta acción');
+    }
+
+    return true;
+  }
+}
+</file>
+
+<file path="src/auth/services/auth-login.service.ts">
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { UserEntity } from '../../users/entities/user.entity.js';
+import { LoginDto } from '../dtos/login.dto.js';
+
+@Injectable()
+export class AuthLoginService {
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async login(dto: LoginDto) {
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+      relations: { userRoles: { role: true } },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password_hash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    const roles = user.userRoles?.map((ur) => ur.role?.rol_name) || ['Atleta'];
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      roles: roles,
+    };
+
+    const token = this.jwtService.sign(payload);
+
+    return {
+      access_token: token,
+      user: {
+        id: user.id,
+        email: user.email,
+        roles: roles,
+      },
+    };
+  }
+}
+</file>
+
+<file path="src/auth/services/auth-password.service.ts">
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import * as bcrypt from 'bcrypt';
+import { UserEntity } from '../../users/entities/user.entity.js';
+
+import { ForgotPasswordDto } from '../dtos/forgot-password.dto.js';
+import { ResetPasswordDto } from '../dtos/reset-password.dto.js';
+import { JWT_SECRET } from '../../config/constants.js';
+import { EmailService } from '../../mails/mail.service.js';
+import { PersonEntity } from '../../people/entities/person.entity.js';
+
+@Injectable()
+export class AuthPasswordService {
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(PersonEntity)
+    private readonly personRepository: Repository<PersonEntity>,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
+  ) {}
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('No existe un usuario registrado con este correo electrónico');
+    }
+
+    // Generar un código de 4 dígitos aleatorio (ej: 4829)
+    const resetCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+    const secret = this.configService.get<string>(JWT_SECRET) + user.password_hash;
+    const payload = { sub: user.id, email: user.email, code: resetCode };
+    const resetToken = this.jwtService.sign(payload, { secret, expiresIn: '30m' });
+
+    // Buscar el nombre de la persona asociada
+    const person = await this.personRepository.findOne({
+      where: { user_id: user.id },
+    });
+
+    await this.emailService.sendEmail({
+      to: user.email,
+      subject: 'Código de recuperación de contraseña — Atleta x Gym',
+      template: 'reset-password',
+      context: {
+        name: person?.firstName || 'Atleta',
+        resetCode: resetCode,
+      },
+    });
+
+    return {
+      message: 'Se ha enviado el código de verificación de 4 dígitos a tu correo electrónico',
+      resetToken,
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    try {
+      // 1. Decodificar el token sin verificar para obtener el ID del usuario (sub)
+      const decoded: any = this.jwtService.decode(dto.token);
+      if (!decoded || !decoded.sub) {
+        throw new BadRequestException('Token de recuperación inválido');
+      }
+
+      const user = await this.userRepository.findOne({ where: { id: decoded.sub } });
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      // 2. Verificar el token usando el secret dinámico basado en su contraseña actual
+      const secret = this.configService.get<string>(JWT_SECRET) + user.password_hash;
+      this.jwtService.verify(dto.token, { secret });
+
+      // 3. Encriptar la nueva contraseña con bcrypt
+      const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+      // 4. Actualizar la contraseña en la base de datos
+      user.password_hash = hashedPassword;
+      await this.userRepository.save(user);
+
+      return { message: 'Contraseña actualizada exitosamente' };
+    } catch (error) {
+      throw new BadRequestException('El token de recuperación es inválido o ha expirado');
+    }
+  }
+}
+</file>
+
+<file path="src/auth/services/auth-register.service.ts">
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import * as bcrypt from 'bcrypt';
+import { UserEntity } from '../../users/entities/user.entity.js';
+import { PersonEntity } from '../../people/entities/person.entity.js';
+import { UserRoleEntity } from '../../roles/entities/user-role.entity.js';
+import { RegisterDto } from '../dtos/register.dto.js';
+import { EmailService } from '../../mails/mail.service.js';
+
+@Injectable()
+export class AuthRegisterService {
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(PersonEntity)
+    private readonly personRepository: Repository<PersonEntity>,
+    @InjectRepository(UserRoleEntity)
+    private readonly userRoleRepository: Repository<UserRoleEntity>,
+    private readonly mailService: EmailService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  async register(dto: RegisterDto) {
+    const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
+    if (existingUser) {
+      throw new BadRequestException('El correo electrónico ya está registrado');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    // 1. Crear usuario
+    const newUser = this.userRepository.create({
+      email: dto.email,
+      password_hash: hashedPassword,
+      role_id: dto.role_id || 3,
+    });
+    const savedUser = await this.userRepository.save(newUser);
+
+    // 2. Crear persona asociada (incluyendo el documentNumber / cédula)
+    // 2. Crear persona asociada
+    const newPerson = this.personRepository.create({
+      user_id: savedUser.id,
+      documentNumber: dto.documentNumber ?? undefined, // Si viene vacío, pasa undefined
+      firstName: dto.firstName,
+      firstLastName: dto.firstLastName,
+      cellphone: dto.cellphone ?? undefined,
+      address: dto.address ?? undefined,
+      gender: dto.gender ?? undefined,
+    });
+    await this.personRepository.save(newPerson);
+
+
+    // 3. Registrar en la tabla intermedia user_roles
+    const newUserRole = this.userRoleRepository.create({
+      user_id: savedUser.id,
+      role_id: dto.role_id || 3,
+    });
+    await this.userRoleRepository.save(newUserRole);
+
+    // 4. Enviar correo de bienvenida usando la plantilla welcome.hbs
+    try {
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
+      await this.mailService.sendEmail({
+        to: savedUser.email,
+        subject: '¡Bienvenido a Atleta x Gym! 🚀',
+        template: 'welcome',
+        context: {
+          name: newPerson.firstName || 'Atleta',
+          loginUrl: `${frontendUrl}/login`,
+        },
+      });
+    } catch (error) {
+      console.error('No se pudo enviar el correo de bienvenida:', error);
+    }
+
+    return { message: 'Usuario registrado exitosamente', userId: savedUser.id };
+  }
+}
+</file>
+
+<file path="src/auth/strategies/jwt.strategy.ts">
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ConfigService } from '@nestjs/config';
+import { JWT_SECRET } from '../../config/constants.js';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private readonly configService: ConfigService) {
+    const secret = configService.get<string>(JWT_SECRET);
+    
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined in environment variables');
+    }
+
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: secret,
+    });
+  }
+
+  async validate(payload: any) {
+    return {
+      user_id: payload.sub,
+      email: payload.email,
+      roles: payload.roles,
+    };
+  }
+}
+</file>
+
+<file path="src/auth/auth.controller.ts">
+import { Controller, Post, Body } from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { AuthService } from './auth.service.js';
+import { RegisterDto } from './dtos/register.dto.js';
+import { LoginDto } from './dtos/login.dto.js';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto.js';
+import { ResetPasswordDto } from './dtos/reset-password.dto.js';
+
+@ApiTags('auth')
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  @ApiOperation({ summary: 'Registrar un nuevo usuario y su perfil' })
+  async register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
+  }
+
+  @Post('login')
+  @ApiOperation({ summary: 'Iniciar sesión y obtener token JWT' })
+  async login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Solicitar código de recuperación de contraseña por correo' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Restablecer contraseña usando el token temporal' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
+  }
+}
+</file>
+
+<file path="src/auth/auth.module.ts">
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
+import { AuthService } from './auth.service.js';
+import { AuthRegisterService } from './services/auth-register.service.js';
+import { AuthLoginService } from './services/auth-login.service.js';
+import { AuthPasswordService } from './services/auth-password.service.js';
+import { AuthController } from './auth.controller.js';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
+
+import { UserEntity } from '../users/entities/user.entity.js';
+import { PersonEntity } from '../people/entities/person.entity.js';
+import { UserRoleEntity } from '../roles/entities/user-role.entity.js';
+
+// 1. IMPORTAR EL MÓDULO DE EMAIL AQUÍ:
+import { EmailModule } from '../mails/mail.module.js';
+import { JWT_SECRET } from '../config/constants.js';
+
+
+@Module({
+  imports: [
+    PassportModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>(JWT_SECRET),
+        signOptions: { expiresIn: '30m' },
+      }),
+    }),
+    TypeOrmModule.forFeature([UserEntity, PersonEntity, UserRoleEntity]),
+    EmailModule, 
+  ],
+  controllers: [AuthController],
+  providers: [
+    AuthService,
+    AuthRegisterService,
+    AuthLoginService,
+    AuthPasswordService,
+    JwtStrategy,
+  ],
+  exports: [JwtStrategy, PassportModule, JwtModule],
+})
+export class AuthModule {}
+</file>
+
+<file path="src/auth/auth.service.ts">
+import { Injectable } from '@nestjs/common';
+import { AuthRegisterService } from './services/auth-register.service.js';
+import { AuthLoginService } from './services/auth-login.service.js';
+import { AuthPasswordService } from './services/auth-password.service.js';
+import { RegisterDto } from './dtos/register.dto.js';
+import { LoginDto } from './dtos/login.dto.js';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto.js';
+import { ResetPasswordDto } from './dtos/reset-password.dto.js';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly authRegisterService: AuthRegisterService,
+    private readonly authLoginService: AuthLoginService,
+    private readonly authPasswordService: AuthPasswordService,
+  ) {}
+
+  async register(dto: RegisterDto) {
+    return this.authRegisterService.register(dto);
+  }
+
+  async login(dto: LoginDto) {
+    return this.authLoginService.login(dto);
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    return this.authPasswordService.forgotPassword(dto);
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    return this.authPasswordService.resetPassword(dto);
+  }
+}
+</file>
+
+<file path="src/config/constants.ts">
+// src/config/constants.ts
+export const DB_HOST = 'DB_HOST';
+export const DB_PORT = 'DB_PORT';
+export const DB_USER = 'DB_USER';
+export const DB_PASSWORD = 'DB_PASSWORD';
+export const DB_DATABASE = 'DB_DATABASE';
+export const SERVER_PORT = 'SERVER_PORT';
+
+export const JWT_SECRET = 'JWT_SECRET';
+
+
+export const MAIL_HOST = 'MAIL_HOST';
+export const MAIL_PORT = 'MAIL_PORT';
+export const MAIL_USER = 'MAIL_USER';
+export const MAIL_PASSWORD = 'MAIL_PASSWORD';
+</file>
+
+<file path="src/mails/templates/reset-password.hbs">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Recuperar contraseña — Atleta x Gym</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f6f6; margin: 0; padding: 0;">
+  <table width="100%" bgcolor="#f6f6f6" cellpadding="0" cellspacing="0">
+    <tr>
+      <td>
+        <table width="600" align="center" bgcolor="#ffffff" cellpadding="0" cellspacing="0"
+               style="margin: 40px auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+
+          <tr>
+            <td align="center" style="background-color: #1a1a1a; border-radius: 8px 8px 0 0; padding: 28px 40px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 2px;">ATLETA X GYM</h1>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 40px;">
+              <p style="font-size: 18px; color: #333; margin: 0 0 16px;">
+                Hola, <strong>{{name}}</strong> 👋
+              </p>
+              <p style="font-size: 15px; color: #555; line-height: 1.7; margin: 0 0 12px;">
+                Recibimos una solicitud para restablecer la contraseña de tu cuenta en 
+                <strong style="color: #ff4d4d;">Atleta x Gym</strong>.
+              </p>
+              <p style="font-size: 15px; color: #555; line-height: 1.7; margin: 0 0 24px;">
+                Ingresa el siguiente código de verificación en la aplicación para continuar. Este código expira en <strong>30 minutos</strong>.
+              </p>
+
+              <div style="text-align: center; margin: 32px 0;">
+                <div style="display: inline-block; font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: bold; color: #ff4d4d; background-color: #FFF5F5; border: 2px dashed #ff4d4d; padding: 14px 32px; border-radius: 8px; letter-spacing: 6px;">
+                  {{resetCode}}
+                </div>
+              </div>
+
+              <hr style="border: none; border-top: 1px solid #eaeaea; margin: 0 0 24px;" />
+
+              <p style="font-size: 13px; color: #777; margin: 0 0 24px;">
+                Si tú no solicitaste este cambio, puedes ignorar este mensaje de forma segura. Tu contraseña actual no sufrirá modificaciones.
+              </p>
+
+              <p style="font-size: 14px; color: #999; margin: 0;">
+                Atentamente,<br>
+                <strong style="color: #333;">Equipo Atleta x Gym</strong><br>
+                <span style="font-size: 12px;">Mocoa, Putumayo, Colombia</span>
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td align="center" style="background-color: #f6f6f6; border-radius: 0 0 8px 8px; padding: 16px 40px;">
+              <p style="font-size: 12px; color: #bbb; margin: 0;">
+                © 2026 Atleta x Gym · Todos los derechos reservados
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+</file>
+
+<file path="src/mails/templates/welcome.hbs">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>¡Bienvenido a Atleta x Gym!</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f6f6; margin: 0; padding: 0;">
+  <table width="100%" bgcolor="#f6f6f6" cellpadding="0" cellspacing="0">
+    <tr>
+      <td>
+        <table width="600" align="center" bgcolor="#ffffff" cellpadding="0" cellspacing="0"
+               style="margin: 40px auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+
+          <tr>
+            <td align="center" style="background-color: #1a1a1a; border-radius: 8px 8px 0 0; padding: 28px 40px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 2px;">ATLETA X GYM</h1>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 40px;">
+              <p style="font-size: 18px; color: #333; margin: 0 0 16px;">
+                ¡Hola, <strong>{{name}}</strong>! 💪
+              </p>
+              <p style="font-size: 15px; color: #555; line-height: 1.7; margin: 0 0 12px;">
+                Nos alegra muchísimo darte la bienvenida a 
+                <strong style="color: #ff4d4d;">Atleta x Gym</strong>. Tu cuenta ha sido creada exitosamente y ya formás parte de nuestra comunidad de atletas.
+              </p>
+              <p style="font-size: 15px; color: #555; line-height: 1.7; margin: 0 0 24px;">
+                Ya puedes iniciar sesión en la aplicación para gestionar tus rutinas, entrenamientos y llevar tu rendimiento al siguiente nivel.
+              </p>
+
+              <hr style="border: none; border-top: 1px solid #eaeaea; margin: 0 0 24px;" />
+
+              <p style="font-size: 13px; color: #777; margin: 0 0 24px;">
+                Si tienes alguna duda o necesitas soporte, puedes responder directamente a este mensaje. ¡Estamos para ayudarte!
+              </p>
+
+              <p style="font-size: 14px; color: #999; margin: 0;">
+                Con fuerza y constancia,<br>
+                <strong style="color: #333;">Equipo Atleta x Gym</strong><br>
+                <span style="font-size: 12px;">Mocoa, Putumayo, Colombia</span>
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td align="center" style="background-color: #f6f6f6; border-radius: 0 0 8px 8px; padding: 16px 40px;">
+              <p style="font-size: 12px; color: #bbb; margin: 0;">
+                © 2026 Atleta x Gym · Todos los derechos reservados
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+</file>
+
+<file path="src/mails/mail.module.ts">
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { EmailService } from './mail.service.js';
+
+
+@Module({
+  imports: [ConfigModule],
+  providers: [EmailService],
+  exports: [EmailService], // <--- Clave para poder inyectarlo en AuthModule
+})
+export class EmailModule {}
+</file>
+
+<file path="src/mails/mail.service.ts">
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
+import handlebars from 'handlebars';
+import * as fs from 'fs';
+import * as path from 'path';
+
+interface EmailOptions {
+  to: string;
+  subject: string;
+  template: string; // nombre del archivo hbs (ej. 'reset-password')
+  context: Record<string, any>; // variables para la plantilla
+}
+
+@Injectable()
+export class EmailService {
+  private transporter: nodemailer.Transporter;
+
+  constructor(private readonly configService: ConfigService) {
+    this.transporter = nodemailer.createTransport({
+      host: this.configService.get<string>('MAIL_HOST') || 'smtp.gmail.com',
+      port: this.configService.get<number>('MAIL_PORT') || 587,
+      secure: false, // true para 465, false para otros puertos
+      auth: {
+        user: this.configService.get<string>('MAIL_USER'),
+        pass: this.configService.get<string>('MAIL_PASSWORD'),
+      },
+    });
+  }
+
+  async sendEmail(options: EmailOptions) {
+    try {
+      // Ruta donde se encuentran las plantillas .hbs
+      const templatePath = path.resolve(process.cwd(), 'src/mails/templates', `${options.template}.hbs`);
+      const templateSource = fs.readFileSync(templatePath, 'utf8');
+      const compiledTemplate = handlebars.compile(templateSource);
+      const html = compiledTemplate(options.context);
+
+      const mailOptions = {
+        from: `"Atleta x Gym" <${this.configService.get<string>('MAIL_USER')}>`,
+        to: options.to,
+        subject: options.subject,
+        html,
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      return { success: true, message: 'Correo enviado exitosamente' };
+    } catch (error) {
+      console.error('Error al enviar el correo:', error);
+      throw new Error('No se pudo enviar el correo electrónico');
+    }
+  }
+}
+</file>
+
+<file path="src/membership-plans/dtos/create-membership-plan.dto.ts">
+import { IsString, IsNotEmpty, IsNumber, IsEnum, IsOptional, IsBoolean, Min, IsInt } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PlanType } from '../entities/membership-plan.entity.js';
+
+export class CreateMembershipPlanDto {
+  @ApiProperty({ example: 'Estudiantil', description: 'Nombre del plan de membresía' })
+  @IsString()
+  @IsNotEmpty({ message: 'El nombre del plan es obligatorio' })
+  name: string;
+
+  @ApiPropertyOptional({ example: 'Plan exclusivo para estudiantes con carnet vigente', description: 'Descripción detallada' })
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @ApiProperty({ example: 60000, description: 'Costo del plan' })
+  @IsNumber({}, { message: 'El precio debe ser un número válido' })
+  @Min(0, { message: 'El precio no puede ser negativo' })
+  price: number;
+
+  @ApiProperty({ enum: PlanType, example: PlanType.TIME, description: 'Tipo de plan: time (tiempo) o session (sesiones)' })
+  @IsEnum(PlanType, { message: 'El tipo de plan debe ser time o session' })
+  planType: PlanType;
+
+  @ApiProperty({ example: 30, description: 'Duración en días o vigencia del plan' })
+  @IsInt({ message: 'La duración en días debe ser un número entero' })
+  @Min(1, { message: 'La duración debe ser al menos de 1 día' })
+  durationDays: number;
+
+  @ApiPropertyOptional({ example: 10, description: 'Cantidad de sesiones (solo aplica si el plan es de tipo session)' })
+  @IsInt({ message: 'Las sesiones deben ser un número entero' })
+  @IsOptional()
+  sessions?: number;
+
+  @ApiPropertyOptional({ example: true, description: 'Estado activo del plan' })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+}
+</file>
+
+<file path="src/membership-plans/dtos/update-membership-plan.dto.ts">
+import { PartialType } from '@nestjs/swagger';
+import { CreateMembershipPlanDto } from './create-membership-plan.dto.js';
+
+export class UpdateMembershipPlanDto extends PartialType(CreateMembershipPlanDto) {}
+</file>
+
+<file path="src/membership-plans/entities/membership-plan.entity.ts">
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+
+export enum PlanType {
+  TIME = 'time',        
+  SESSION = 'session',   
+}
+
+@Entity('membership_plans')
+export class MembershipPlanEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'varchar', length: 100, unique: true })
+  name: string; // Ej: "Básico", "Estudiantil", "Uniputumayo", "Pareja", "6 meses", "1 Año", "Plan Kids", "10 Sesiones"
+
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  price: number; // Ej: 70000, 60000, 56000, etc.
+
+  @Column({ 
+    type: 'enum', 
+    enum: PlanType, 
+    default: PlanType.TIME,
+    name: 'plan_type' 
+  })
+  planType: PlanType;
+
+  @Column({ type: 'int', name: 'duration_days', nullable: true })
+  durationDays: number; // Para planes de tiempo: 30 días, 180 días (6 meses), 365 días (1 año), o vigencia en sesiones (15, 30, 60 días)
+
+  @Column({ type: 'int', nullable: true })
+  sessions: number; // Solo aplica si es por sesiones (Ej: 1, 10, 15, 30). Null para los mensuales.
+
+  @Column({ type: 'boolean', default: true, name: 'is_active' })
+  isActive: boolean;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+}
+</file>
+
+<file path="src/membership-plans/membership-plans.controller.ts">
+import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { MembershipPlansService } from './membership-plans.service.js';
+import { CreateMembershipPlanDto } from './dtos/create-membership-plan.dto.js';
+import { UpdateMembershipPlanDto } from './dtos/update-membership-plan.dto.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js'; // Ajusta la ruta de tu guard si es necesario
+
+@ApiTags('Membership Plans (Planes de Membresía)')
+@Controller('membership-plans')
+export class MembershipPlansController {
+  constructor(private readonly plansService: MembershipPlansService) {}
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Crear un nuevo plan de membresía' })
+  @ApiResponse({ status: 201, description: 'Plan creado exitosamente' })
+  create(@Body() dto: CreateMembershipPlanDto) {
+    return this.plansService.create(dto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Obtener todos los planes de membresía activos' })
+  @ApiResponse({ status: 200, description: 'Lista de planes obtenida exitosamente' })
+  findAll() {
+    return this.plansService.findAll();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener un plan de membresía por su ID' })
+  @ApiResponse({ status: 200, description: 'Plan encontrado' })
+  @ApiResponse({ status: 404, description: 'Plan no encontrado' })
+  findOne(@Param('id') id: string) {
+    return this.plansService.findOne(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Actualizar un plan de membresía existente' })
+  @ApiResponse({ status: 200, description: 'Plan actualizado exitosamente' })
+  update(@Param('id') id: string, @Body() dto: UpdateMembershipPlanDto) {
+    return this.plansService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Desactivar lógicamente un plan de membresía' })
+  @ApiResponse({ status: 200, description: 'Plan desactivado exitosamente' })
+  remove(@Param('id') id: string) {
+    return this.plansService.remove(id);
+  }
+}
+</file>
+
+<file path="src/membership-plans/membership-plans.module.ts">
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { MembershipPlanEntity } from './entities/membership-plan.entity.js';
+import { MembershipPlansService } from './membership-plans.service.js';
+import { MembershipPlansController } from './membership-plans.controller.js';
+import { MembershipPlansSeeder } from './membership-plans.seeder.js'; 
+
+@Module({
+  imports: [TypeOrmModule.forFeature([MembershipPlanEntity])],
+  controllers: [MembershipPlansController],
+  providers: [MembershipPlansService, MembershipPlansSeeder],
+  exports: [MembershipPlansService],
+})
+export class MembershipPlansModule {}
+</file>
+
+<file path="src/membership-plans/membership-plans.seeder.ts">
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { MembershipPlanEntity, PlanType } from './entities/membership-plan.entity.js';
+
+@Injectable()
+export class MembershipPlansSeeder implements OnModuleInit {
+  constructor(
+    @InjectRepository(MembershipPlanEntity)
+    private readonly planRepository: Repository<MembershipPlanEntity>,
+  ) {}
+
+  async onModuleInit() {
+    await this.seedDefaultPlans();
+  }
+
+  async seedDefaultPlans() {
+    const count = await this.planRepository.count();
+    
+    // Si ya existen planes, no duplicamos nada
+    if (count > 0) {
+      return;
+    }
+
+    const defaultPlans = [
+      // Planes por Tiempo
+      { name: 'Básico', description: 'Plan mensual general', price: 70000, planType: PlanType.TIME, durationDays: 30 },
+      { name: 'Estudiantil', description: 'Plan exclusivo para estudiantes con carnet', price: 60000, planType: PlanType.TIME, durationDays: 30 },
+      { name: 'Uniputumayo', description: 'Plan especial para la comunidad UniPutumayo', price: 56000, planType: PlanType.TIME, durationDays: 30 },
+      { name: 'Pareja', description: 'Plan mensual para dos personas', price: 120000, planType: PlanType.TIME, durationDays: 30 },
+      { name: '6 meses', description: 'Plan semestral con descuento', price: 400000, planType: PlanType.TIME, durationDays: 180 },
+      { name: '1 Año', description: 'Plan anual completo', price: 700000, planType: PlanType.TIME, durationDays: 365 },
+      { name: 'Plan Kids', description: 'Plan mensual infantil', price: 50000, planType: PlanType.TIME, durationDays: 30 },
+
+      // Paquetes por Sesiones
+      { name: '1 Sesión', description: 'Pase diario al gimnasio', price: 8000, planType: PlanType.SESSION, durationDays: 1, sessions: 1 },
+      { name: '10 Sesiones', description: 'Bono de 10 entradas', price: 40000, planType: PlanType.SESSION, durationDays: 15, sessions: 10 },
+      { name: '15 Sesiones', description: 'Bono de 15 entradas', price: 55000, planType: PlanType.SESSION, durationDays: 30, sessions: 15 },
+      { name: '30 Sesiones', description: 'Bono de 30 entradas', price: 120000, planType: PlanType.SESSION, durationDays: 60, sessions: 30 },
+    ];
+
+    for (const planData of defaultPlans) {
+      const plan = this.planRepository.create(planData);
+      await this.planRepository.save(plan);
+    }
+
+    console.log('✅ ¡Planes oficiales de Atleta x Gym sembrados exitosamente en la base de datos!');
+  }
+}
+</file>
+
+<file path="src/membership-plans/membership-plans.service.ts">
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { MembershipPlanEntity } from './entities/membership-plan.entity.js';
+import { CreateMembershipPlanDto } from './dtos/create-membership-plan.dto.js';
+import { UpdateMembershipPlanDto } from './dtos/update-membership-plan.dto.js';
+
+@Injectable()
+export class MembershipPlansService {
+  constructor(
+    @InjectRepository(MembershipPlanEntity)
+    private readonly planRepository: Repository<MembershipPlanEntity>,
+  ) {}
+
+  async create(dto: CreateMembershipPlanDto) {
+    const existingPlan = await this.planRepository.findOne({ where: { name: dto.name } });
+    if (existingPlan) {
+      throw new ConflictException('Ya existe un plan de membresía con este nombre');
+    }
+
+    const newPlan = this.planRepository.create(dto);
+    await this.planRepository.save(newPlan);
+
+    return {
+      message: 'Plan de membresía creado exitosamente',
+      plan: newPlan,
+    };
+  }
+
+  async findAll() {
+    return await this.planRepository.find({
+      order: { price: 'ASC' },
+    });
+  }
+
+  async findOne(id: string) {
+    const plan = await this.planRepository.findOne({ where: { id } });
+    if (!plan) {
+      throw new NotFoundException('Plan de membresía no encontrado');
+    }
+    return plan;
+  }
+
+  async update(id: string, dto: UpdateMembershipPlanDto) {
+    const plan = await this.findOne(id);
+
+    if (dto.name && dto.name !== plan.name) {
+      const existingName = await this.planRepository.findOne({ where: { name: dto.name } });
+      if (existingName) {
+        throw new ConflictException('Ya existe otro plan con ese nombre');
+      }
+    }
+
+    Object.assign(plan, dto);
+    await this.planRepository.save(plan);
+
+    return {
+      message: 'Plan de membresía actualizado exitosamente',
+      plan,
+    };
+  }
+
+  async remove(id: string) {
+    const plan = await this.findOne(id);
+    // Eliminación lógica cambiando el isActive a false para no romper historial de usuarios
+    plan.isActive = false;
+    await this.planRepository.save(plan);
+
+    return {
+      message: 'Plan de membresía desactivado exitosamente',
+    };
+  }
+}
+</file>
+
+<file path="src/people/dtos/update-people.dto.ts">
+import { IsString, IsOptional } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+
+export class UpdatePeopleDto {
+  @ApiPropertyOptional({ example: 'Marlon' })
+  @IsOptional()
+  @IsString()
+  firstName?: string;
+
+  @ApiPropertyOptional({ example: 'Moncayo' })
+  @IsOptional()
+  @IsString()
+  firstLastName?: string;
+
+  @ApiPropertyOptional({ example: '3101234567' })
+  @IsOptional()
+  @IsString()
+  cellphone?: string;
+
+  @ApiPropertyOptional({ example: 'Calle Principal #123' })
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @ApiPropertyOptional({ example: 'Masculino' })
+  @IsOptional()
+  @IsString()
+  gender?: string;
+
+  @ApiPropertyOptional({ example: 'https://example.com/avatar.jpg' })
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+}
+</file>
+
+<file path="src/people/entities/person.entity.ts">
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import type { UserEntity } from '../../users/entities/user.entity.js';
+import { UserMembershipEntity } from '../../user-memberships/entities/user-membership.entity.js';
+
+
+@Entity('people')
+export class PersonEntity {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ nullable: true, unique: true, name: 'user_id' })
+  user_id?: number;
+
+  @Column({ type: 'varchar', length: 30, unique: true, nullable: true, name: 'document_number' })
+  documentNumber?: string; // Cédula o documento (esencial para la recepción)
+
+  @Column({ type: 'varchar', length: 100, name: 'first_name' })
+  firstName: string;
+
+  @Column({ type: 'varchar', length: 100, name: 'first_last_name' })
+  firstLastName: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  cellphone?: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  address?: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  gender?: string;
+
+  @Column({ type: 'boolean', default: false, name: 'is_student_discount' })
+  isStudentDiscount: boolean; // Para convenios de la UniPutumayo
+
+  @Column({ type: 'text', nullable: true, name: 'avatar_url' })
+  avatarUrl?: string;
+
+  @OneToOne('UserEntity', { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user?: UserEntity;
+
+  @OneToMany(() => UserMembershipEntity, (membership) => membership.person)
+  memberships: UserMembershipEntity[];
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+}
+</file>
+
+<file path="src/people/people.controller.ts">
+import { Controller, Get, Post, Patch, Param, Body, Req, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { PeopleService } from './people.service.js';
+import { UpdatePeopleDto } from './dtos/update-people.dto.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
+
+@ApiTags('people')
+@ApiBearerAuth() 
+@Controller('people')
+export class PeopleController {
+  constructor(private readonly peopleService: PeopleService) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin', 'SuperAdmin')
+  @ApiOperation({ summary: 'Obtener todas las personas (Solo Admin / SuperAdmin)' })
+  async findAll() {
+    return this.peopleService.obtenerPersonas();
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin', 'SuperAdmin')
+  @ApiOperation({ summary: 'Crear un perfil de persona manualmente' })
+  async create(
+    @Body() dto: { user_id: number; firstName: string; firstLastName: string; cellphone?: string; address?: string; gender?: string },
+  ) {
+    return this.peopleService.create(dto);
+  }
+
+  @Get('user/:userId')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Obtener persona por ID de usuario' })
+  async findByUserId(@Param('userId') userId: string) {
+    return this.peopleService.obtenerPersonaPorUserId(+userId);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Obtener persona por ID de perfil' })
+  async findById(@Param('id') id: string) {
+    return this.peopleService.obtenerPersonaPorId(+id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Actualizar información de la persona (Dueño o Admin)' })
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdatePeopleDto,
+    @Req() req: any,
+  ) {
+    // req.user viene directamente del Token JWT decodificado por la JwtStrategy
+    const currentUser = req.user; 
+    return this.peopleService.actualizarPersona(+id, dto, currentUser);
+  }
+}
+</file>
+
+<file path="src/people/people.module.ts">
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PeopleService } from './people.service.js';
+import { PeopleController } from './people.controller.js';
+import { PersonEntity } from './entities/person.entity.js';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([PersonEntity])],
+  controllers: [PeopleController],
+  providers: [PeopleService],
+  exports: [PeopleService],
+})
+export class PeopleModule {}
+</file>
+
+<file path="src/people/people.service.ts">
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { PersonEntity } from './entities/person.entity.js';
+import { UpdatePeopleDto } from './dtos/update-people.dto.js';
+
+@Injectable()
+export class PeopleService {
+  constructor(
+    @InjectRepository(PersonEntity)
+    private readonly personRepository: Repository<PersonEntity>,
+  ) {}
+
+  async create(dto: { 
+    user_id?: number; 
+    documentNumber?: string; // <--- Añadido aquí
+    firstName: string; 
+    firstLastName: string; 
+    cellphone?: string; 
+    address?: string; 
+    gender?: string; 
+    avatarUrl?: string 
+  }) {
+    const newPerson = this.personRepository.create(dto);
+    return await this.personRepository.save(newPerson);
+  }
+
+  async obtenerPersonas(): Promise<PersonEntity[]> {
+    const personas = await this.personRepository.find({ relations: { user: true } });
+    if (personas.length === 0) {
+      throw new NotFoundException('No hay personas registradas');
+    }
+    return personas;
+  }
+
+  async obtenerPersonaPorUserId(userId: number): Promise<PersonEntity> {
+    const persona = await this.personRepository.findOne({
+      where: { user_id: userId },
+      relations: { user: true },
+    });
+    if (!persona) {
+      throw new NotFoundException('Persona no encontrada para este usuario');
+    }
+    return persona;
+  }
+
+  // NUEVO: Método útil para buscar clientes presenciales o digitales por su cédula en recepción
+  async obtenerPersonaPorDocumento(documentNumber: string): Promise<PersonEntity> {
+    const persona = await this.personRepository.findOne({
+      where: { documentNumber },
+      relations: { user: true },
+    });
+    if (!persona) {
+      throw new NotFoundException('Persona no encontrada con este número de documento');
+    }
+    return persona;
+  }
+
+  async obtenerPersonaPorId(id: number): Promise<PersonEntity> {
+    const persona = await this.personRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+    if (!persona) {
+      throw new NotFoundException('Persona no encontrada');
+    }
+    return persona;
+  }
+
+  async actualizarPersona(idFromParam: number, dto: UpdatePeopleDto & { documentNumber?: string }, currentUser: any) {
+    const isOwner = Number(idFromParam) === Number(currentUser.user_id);
+    const isAdmin = currentUser.rolIds?.includes(1) || currentUser.roles?.includes('Admin');
+
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException('No tienes permisos para actualizar esta persona');
+    }
+
+    const persona = await this.personRepository.findOne({ where: { user_id: idFromParam } });
+    if (!persona) {
+      throw new NotFoundException('Persona no encontrada');
+    }
+
+    if (dto.documentNumber) persona.documentNumber = dto.documentNumber; // <--- Permitir actualizar cédula si es admin
+    if (dto.firstName) persona.firstName = dto.firstName;
+    if (dto.firstLastName) persona.firstLastName = dto.firstLastName;
+    if (dto.cellphone) persona.cellphone = dto.cellphone;
+    if (dto.address) persona.address = dto.address;
+    if (dto.gender) persona.gender = dto.gender;
+    if (dto.avatarUrl !== undefined) persona.avatarUrl = dto.avatarUrl;
+
+    await this.personRepository.save(persona);
+    return { message: 'Información de la persona actualizada correctamente' };
+  }
+}
+</file>
+
+<file path="src/roles/entities/role.entity.ts">
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import type { UserRoleEntity } from './user-role.entity.js';
+
+@Entity('roles')
+export class RoleEntity {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 50, unique: true })
+  rol_name: string;
+
+  @OneToMany('UserRoleEntity', (userRole: UserRoleEntity) => userRole.role)
+  userRoles: UserRoleEntity[];
+}
+</file>
+
+<file path="src/roles/entities/user-role.entity.ts">
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+import type { UserEntity } from '../../users/entities/user.entity.js'; 
+import type { RoleEntity } from './role.entity.js'; // <--- Cambiado a import type
+
+@Entity('user_roles')
+export class UserRoleEntity {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  user_id: number;
+
+  @Column()
+  role_id: number;
+
+  @ManyToOne('UserEntity', (user: UserEntity) => user.userRoles, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: UserEntity;
+
+  @ManyToOne('RoleEntity', (role: RoleEntity) => role.userRoles, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'role_id' })
+  role: RoleEntity;
+}
+</file>
+
+<file path="src/roles/roles.controller.ts">
+import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
+import { RolesService } from './roles.service.js';
+import { RoleEntity } from './entities/role.entity.js';
+
+@Controller('roles')
+export class RolesController {
+  constructor(private readonly rolesService: RolesService) {}
+
+  @Get()
+  async findAll(): Promise<RoleEntity[]> {
+    return this.rolesService.findAll();
+  }
+
+  @Post()
+  async create(@Body('rol_name') rol_name: string): Promise<RoleEntity> {
+    return this.rolesService.create(rol_name);
+  }
+
+  // <--- Nuevo endpoint DELETE
+  @Delete(':id')
+  async remove(@Param('id') id: string): Promise<{ message: string }> {
+    await this.rolesService.remove(+id);
+    return { message: `Rol con ID ${id} eliminado exitosamente` };
+  }
+}
+</file>
+
+<file path="src/roles/roles.module.ts">
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RolesService } from './roles.service.js';
+import { RolesController } from './roles.controller.js';
+import { RoleEntity } from './entities/role.entity.js';
+import { UserRoleEntity } from './entities/user-role.entity.js';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([RoleEntity, UserRoleEntity])],
+  controllers: [RolesController],
+  providers: [RolesService],
+  exports: [RolesService],
+})
+export class RolesModule {}
+</file>
+
+<file path="src/roles/roles.service.ts">
+import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { RoleEntity } from './entities/role.entity.js';
+
+@Injectable()
+export class RolesService implements OnModuleInit {
+  constructor(
+    @InjectRepository(RoleEntity)
+    private readonly roleRepository: Repository<RoleEntity>,
+  ) {}
+
+  async onModuleInit() {
+    await this.initializeDefaultRoles();
+  }
+
+  private async initializeDefaultRoles() {
+    const defaultRoles = [
+      { rol_name: 'SuperAdmin' },
+      { rol_name: 'Admin' },
+      { rol_name: 'User' },
+    ];
+
+    for (const roleData of defaultRoles) {
+      const existsByName = await this.roleRepository.findOne({
+        where: { rol_name: roleData.rol_name },
+      });
+      if (!existsByName) {
+        await this.roleRepository.save(roleData);
+      }
+    }
+  }
+
+  async findAll(): Promise<RoleEntity[]> {
+    return this.roleRepository.find();
+  }
+
+  async create(rol_name: string): Promise<RoleEntity> {
+    const newRole = this.roleRepository.create({ rol_name });
+    return this.roleRepository.save(newRole);
+  }
+
+  // <--- Nuevo método para eliminar
+  async remove(id: number): Promise<void> {
+    const role = await this.roleRepository.findOne({ where: { id } });
+    if (!role) {
+      throw new NotFoundException(`Rol con ID ${id} no encontrado`);
+    }
+    await this.roleRepository.remove(role);
+  }
+}
+</file>
+
+<file path="src/user-memberships/dtos/create-user-membership.dto.ts">
+import { IsNotEmpty, IsUUID, IsEmail, IsOptional, IsString, IsBoolean } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class CreateUserMembershipDto {
+  @ApiProperty({ description: 'ID del plan de membresía del catálogo' })
+  @IsUUID('4', { message: 'El ID del plan debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El plan de membresía es obligatorio' })
+  membershipPlanId: string;
+
+  @ApiPropertyOptional({ description: 'Cédula o documento de identidad (Obligatorio para recepción y pre-registro web)' })
+  @IsString()
+  @IsOptional()
+  documentNumber?: string;
+
+  @ApiPropertyOptional({ description: 'Correo electrónico (Obligatorio para compras o registros digitales)' })
+  @IsEmail({}, { message: 'Debe proporcionar un correo electrónico válido' })
+  @IsOptional()
+  email?: string;
+
+  @ApiPropertyOptional({ description: 'Nombre' })
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  @ApiPropertyOptional({ description: 'Apellido' })
+  @IsString()
+  @IsOptional()
+  firstLastName?: string;
+
+  @ApiPropertyOptional({ description: 'Teléfono de contacto' })
+  @IsString()
+  @IsOptional()
+  cellphone?: string;
+
+  @ApiPropertyOptional({ description: 'Aplica al convenio de la UniPutumayo' })
+  @IsBoolean()
+  @IsOptional()
+  isStudentDiscount?: boolean;
+
+  @ApiPropertyOptional({ description: 'Tipo de pago: "wompi" (online) o "manual" (efectivo/nequi en recepción)' })
+  @IsString()
+  @IsOptional()
+  paymentType?: 'wompi' | 'manual';
+}
+</file>
+
+<file path="src/user-memberships/entities/user-membership.entity.ts">
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+
+import type { PersonEntity } from '../../people/entities/person.entity.js'; // Solo import type para TypeScript
+import { MembershipPlanEntity } from '../../membership-plans/entities/membership-plan.entity.js';
+
+export enum PaymentStatus {
+  PENDING = 'pending',
+  PAID = 'paid',
+  REJECTED = 'rejected',
+}
+
+@Entity('user_memberships')
+export class UserMembershipEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+
+  @ManyToOne('PersonEntity', (person: PersonEntity) => person.memberships, { eager: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'person_id' })
+  person: PersonEntity;
+
+  @ManyToOne(() => MembershipPlanEntity, { eager: true, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'membership_plan_id' })
+  membershipPlan: MembershipPlanEntity;
+
+  @Column({ type: 'timestamp', name: 'start_date' })
+  startDate: Date;
+
+  @Column({ type: 'timestamp', name: 'end_date' })
+  endDate: Date;
+
+  @Column({ type: 'int', name: 'sessions_remaining', nullable: true })
+  sessionsRemaining?: number;
+
+  @Column({ 
+    type: 'enum', 
+    enum: PaymentStatus, 
+    default: PaymentStatus.PENDING,
+    name: 'payment_status' 
+  })
+  paymentStatus: PaymentStatus;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'amount_paid' })
+  amountPaid: number;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+}
+</file>
+
+<file path="src/user-memberships/user-memberships.controller.ts">
+import { Controller, Post, Body, Req, UnauthorizedException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { UserMembershipsService } from './user-memberships.service.js';
+import { CreateUserMembershipDto } from './dtos/create-user-membership.dto.js';
+import { JwtService } from '@nestjs/jwt'; // <--- Usar el servicio oficial de NestJS
+
+@ApiTags('User Memberships & Payments (Membresías y Pagos)')
+@Controller('user-memberships')
+export class UserMembershipsController {
+  constructor(
+    private readonly userMembershipsService: UserMembershipsService,
+    private readonly jwtService: JwtService, // <--- Inyectarlo aquí
+  ) {}
+
+  @Post('checkout')
+  @ApiBearerAuth()
+  @ApiOperation({ 
+    summary: 'Checkout unificado (Soporta Clientes Presenciales en recepción, Web Logueados y Pre-registro de Invitados)' 
+  })
+  async createCheckout(@Body() dto: CreateUserMembershipDto, @Req() req: any) {
+    let authUserId: string | undefined = undefined;
+
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        // Valida usando la configuración global del JwtService de tu app
+        const payload = this.jwtService.verify(token);
+        
+        // Extrae el ID del usuario según como lo guardes en el login (sub, id o userId)
+        authUserId = payload.sub || payload.id || payload.user_id;
+      } catch (error) {
+        throw new UnauthorizedException('Token inválido o expirado');
+      }
+    }
+
+    return await this.userMembershipsService.createCheckoutOrManual(dto, authUserId ? String(authUserId) : undefined);
+  }
+
+  @Post('webhook/wompi')
+  @ApiOperation({ summary: 'Endpoint receptor de eventos (Webhooks) de Wompi Sandbox' })
+  async wompiWebhook(@Body() eventData: any) {
+    return await this.userMembershipsService.handleWompiWebhook(eventData);
+  }
+}
+</file>
+
+<file path="src/user-memberships/user-memberships.module.ts">
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt'; // <--- 1. Importar JwtModule
+import { UserMembershipsController } from './user-memberships.controller.js';
+import { UserMembershipsService } from './user-memberships.service.js';
+import { UserMembershipEntity } from './entities/user-membership.entity.js';
+import { MembershipPlanEntity } from '../membership-plans/entities/membership-plan.entity.js';
+import { PersonEntity } from '../people/entities/person.entity.js';
+import { UserEntity } from '../users/entities/user.entity.js';
+import { UserRoleEntity } from '../roles/entities/user-role.entity.js';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([
+      UserMembershipEntity,
+      MembershipPlanEntity,
+      PersonEntity,
+      UserEntity,
+      UserRoleEntity,
+    ]),
+    // <--- 2. Añadir JwtModule configurado para que el controlador pueda usarlo
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'secret',
+      signOptions: { expiresIn: '1d' },
+    }),
+  ],
+  controllers: [UserMembershipsController],
+  providers: [UserMembershipsService],
+  exports: [UserMembershipsService],
+})
+export class UserMembershipsModule {}
+</file>
+
+<file path="src/user-memberships/user-memberships.service.ts">
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserMembershipEntity, PaymentStatus } from './entities/user-membership.entity.js';
+import { MembershipPlanEntity } from '../membership-plans/entities/membership-plan.entity.js';
+import { PersonEntity } from '../people/entities/person.entity.js';
+import { UserEntity } from '../users/entities/user.entity.js';
+import { UserRoleEntity } from '../roles/entities/user-role.entity.js';
+import { CreateUserMembershipDto } from './dtos/create-user-membership.dto.js';
+import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
+
+@Injectable()
+export class UserMembershipsService {
+  constructor(
+    @InjectRepository(UserMembershipEntity)
+    private readonly userMembershipRepository: Repository<UserMembershipEntity>,
+    @InjectRepository(MembershipPlanEntity)
+    private readonly planRepository: Repository<MembershipPlanEntity>,
+    @InjectRepository(PersonEntity)
+    private readonly personRepository: Repository<PersonEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(UserRoleEntity)
+    private readonly userRoleRepository: Repository<UserRoleEntity>,
+  ) {}
+
+  async createCheckoutOrManual(dto: CreateUserMembershipDto, authUserId?: string) {
+    // 1. Validar plan
+    const plan = await this.planRepository.findOne({ where: { id: dto.membershipPlanId } });
+    if (!plan || !plan.isActive) {
+      throw new NotFoundException('El plan de membresía seleccionado no existe o no está activo');
+    }
+
+    let person: PersonEntity | null = null;
+
+    // --- FLUJO 2: Usuario ya autenticado en la web ---
+    if (authUserId) {
+      const user = await this.userRepository.findOne({ where: { id: Number(authUserId) } });
+      if (!user) throw new NotFoundException('Usuario autenticado no encontrado');
+
+      person = await this.personRepository.findOne({ where: { user_id: user.id } });
+      if (!person) {
+        throw new NotFoundException('No se encontró el perfil de persona asociado al usuario');
+      }
+    } 
+    // --- FLUJO 1 y 3: Búsqueda o Creación por Cédula / Documento ---
+    else if (dto.documentNumber) {
+      person = await this.personRepository.findOne({ where: { documentNumber: dto.documentNumber } });
+
+      let savedUser: UserEntity | undefined = undefined;
+
+      if (!person) {
+        // Si no existe la persona, la creamos de cero
+        if (!dto.firstName || !dto.firstLastName) {
+          throw new BadRequestException('La cédula no está registrada. Debe proporcionar nombre y apellido.');
+        }
+
+        // Si trae correo, le creamos cuenta web usando la cédula como contraseña provisional
+        if (dto.email) {
+          const existingEmail = await this.userRepository.findOne({ where: { email: dto.email } });
+          if (existingEmail) throw new BadRequestException('El correo electrónico ya está registrado por otro usuario');
+
+          const provisionalPassword = dto.documentNumber; 
+          const hashedPassword = await bcrypt.hash(provisionalPassword, 10);
+
+          const newUser = this.userRepository.create({
+            email: dto.email,
+            password_hash: hashedPassword,
+            role_id: 3, // Rol Atleta
+          });
+          savedUser = await this.userRepository.save(newUser);
+
+          const newUserRole = this.userRoleRepository.create({
+            user_id: savedUser.id,
+            role_id: 3,
+          });
+          await this.userRoleRepository.save(newUserRole);
+        }
+
+        // Creamos el registro en la tabla people
+        person = this.personRepository.create({
+          documentNumber: dto.documentNumber,
+          firstName: dto.firstName,
+          firstLastName: dto.firstLastName,
+          cellphone: dto.cellphone,
+          isStudentDiscount: dto.isStudentDiscount ?? false,
+          user_id: savedUser ? savedUser.id : undefined,
+        });
+        person = await this.personRepository.save(person);
+      } else {
+        // Si la persona ya existía en recepción pero ahora trae correo y no tenía user_id asociado
+        if (dto.email && !person.user_id) {
+          const existingEmail = await this.userRepository.findOne({ where: { email: dto.email } });
+          if (existingEmail) throw new BadRequestException('El correo electrónico ya está registrado por otro usuario');
+
+          const provisionalPassword = dto.documentNumber;
+          const hashedPassword = await bcrypt.hash(provisionalPassword, 10);
+
+          const newUser = this.userRepository.create({
+            email: dto.email,
+            password_hash: hashedPassword,
+            role_id: 3,
+          });
+          savedUser = await this.userRepository.save(newUser);
+
+          const newUserRole = this.userRoleRepository.create({
+            user_id: savedUser.id,
+            role_id: 3,
+          });
+          await this.userRoleRepository.save(newUserRole);
+
+          // Actualizamos la persona para vincular su nuevo user_id
+          person.user_id = savedUser.id;
+          if (dto.cellphone) person.cellphone = dto.cellphone;
+          await this.personRepository.save(person);
+        }
+      }
+    } else {
+      throw new BadRequestException('Debe iniciar sesión o proporcionar un número de documento (cédula)');
+    }
+
+    // 2. Calcular fechas de vigencia
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(startDate.getDate() + plan.durationDays);
+
+    // 3. Definir estado inicial del pago según el flujo
+    const isManual = dto.paymentType === 'manual'; // Pago en recepción (Efectivo / Nequi directo)
+    const initialStatus = isManual ? PaymentStatus.PAID : PaymentStatus.PENDING;
+
+    // 4. Crear el registro de la membresía
+    const userMembership = this.userMembershipRepository.create({
+      person,
+      membershipPlan: plan,
+      startDate,
+      endDate,
+      sessionsRemaining: plan.sessions ?? undefined,
+      paymentStatus: initialStatus,
+      amountPaid: plan.price,
+    });
+
+    await this.userMembershipRepository.save(userMembership);
+
+    // Si es pago manual en recepción, termina aquí con éxito inmediato
+    if (isManual) {
+      return {
+        message: 'Membresía registrada y pagada exitosamente en recepción',
+        membershipId: userMembership.id,
+        paymentStatus: PaymentStatus.PAID,
+      };
+    }
+
+    // --- FLUJO 2 y 3 (Wompi Online): Generar firma de integridad Sandbox ---
+    const amountInCents = Number(plan.price) * 100;
+    const currency = 'COP';
+    const reference = `ATLETA-GYM-${userMembership.id}`;
+    
+    const integritySecret = process.env.WOMPI_INTEGRITY_SECRET || 'test_integrity_secret';
+    const concatenated = `${reference}${amountInCents}${currency}${integritySecret}`;
+    const signature = crypto.createHash('sha256').update(concatenated).digest('hex');
+
+    return {
+      message: 'Intención de compra generada exitosamente para Wompi',
+      wompiData: {
+        publicKey: process.env.WOMPI_PUBLIC_KEY,
+        currency,
+        amountInCents,
+        reference,
+        signature,
+        redirectUrl: `${process.env.FRONTEND_URL}/payments/success`,
+      },
+      membershipId: userMembership.id,
+    };
+  }
+
+  // Webhook para sincronizar transacciones aprobadas/rechazadas desde Wompi
+  async handleWompiWebhook(eventData: any) {
+    const event = eventData.event;
+    if (event === 'transaction.updated') {
+      const transaction = eventData.data.transaction;
+      const reference = transaction.reference;
+      const status = transaction.status;
+
+      const membershipId = reference.replace('ATLETA-GYM-', '');
+      const userMembership = await this.userMembershipRepository.findOne({ where: { id: membershipId } });
+
+      if (!userMembership) return { received: true };
+
+      if (status === 'APPROVED') {
+        userMembership.paymentStatus = PaymentStatus.PAID;
+        await this.userMembershipRepository.save(userMembership);
+      } else if (status === 'DECLINED' || status === 'ERROR') {
+        userMembership.paymentStatus = PaymentStatus.REJECTED;
+        await this.userMembershipRepository.save(userMembership);
+      }
+    }
+    return { received: true };
+  }
+}
+</file>
+
+<file path="src/users/dto/create-user.dto.ts">
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsEmail, IsInt, IsNotEmpty } from 'class-validator';
+
+export class CreateUserDto {
+  @ApiProperty({ example: 1, description: 'ID del rol asociado al usuario' })
+  @IsInt()
+  @IsNotEmpty()
+  role_id: number;
+
+
+  @ApiProperty({ example: 'rootn@example.com', description: 'Correo electrónico del usuario' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'securepassword123', description: 'Contraseña encriptada o texto plano para hash' })
+  @IsString()
+  @IsNotEmpty()
+  password_hash: string;
+}
+</file>
+
+<file path="src/users/dto/update-user.dto.ts">
+import { IsEmail, IsString, MinLength, IsNumber, IsOptional, IsBoolean } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+
+export class UpdateUserDto {
+  @ApiPropertyOptional({ example: 1, description: 'Nuevo ID del rol asociado' })
+  @IsOptional()
+  @IsNumber()
+  role_id?: number;
+
+
+  @ApiPropertyOptional({ example: 'user.new@example.com', description: 'Nuevo correo electrónico' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiPropertyOptional({ example: 'newsecurepassword123', description: 'Nueva contraseña (mínimo 6 caracteres)' })
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password_hash?: string;
+
+  @ApiPropertyOptional({ example: true, description: 'Estado de actividad del usuario' })
+  @IsOptional()
+  @IsBoolean()
+  is_active?: boolean;
+}
+</file>
+
+<file path="src/users/entities/user.entity.ts">
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, OneToOne } from 'typeorm';
+import type { UserRoleEntity } from '../../roles/entities/user-role.entity.js'; 
+import { PersonEntity } from '../../people/entities/person.entity.js';
+
+@Entity('users')
+export class UserEntity {
+  @PrimaryGeneratedColumn({ type: 'int' })
+  id: number;
+
+  @Column({ type: 'int', nullable: false })
+  role_id: number;
+
+  @Column({ type: 'varchar', length: 100, unique: true, nullable: false })
+  email: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  password_hash: string;
+
+  @Column({ type: 'tinyint', default: 1 })
+  is_active: boolean;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @OneToMany('UserRoleEntity', (userRole: UserRoleEntity) => userRole.user)
+  userRoles: UserRoleEntity[];
+
+  @OneToOne(() => PersonEntity, (person) => person.user)
+  person: PersonEntity;
+}
+</file>
+
+<file path="src/users/users.controller.ts">
+import { Controller, Get, Post, Body, Param, Put, Delete, ParseIntPipe } from '@nestjs/common';
+import { UsersService } from './users.service.js';
+import { CreateUserDto } from './dto/create-user.dto.js';
+import { UpdateUserDto } from './dto/update-user.dto.js';
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('users')
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Post()
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.usersService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findOne(id);
+  }
+
+  @Put(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(id, updateUserDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.remove(id);
+  }
+}
+</file>
+
+<file path="src/users/users.module.ts">
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersController } from './users.controller.js';
+import { UserEntity } from './entities/user.entity.js';
+import { UsersService } from './users.service.js';
+
+
+@Module({
+  imports: [TypeOrmModule.forFeature([UserEntity])],
+  controllers: [UsersController],
+  providers: [UsersService],
+  exports: [UsersService], 
+})
+export class UsersModule {}
+</file>
+
+<file path="src/users/users.service.ts">
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserEntity } from './entities/user.entity.js';
+import { CreateUserDto } from './dto/create-user.dto.js';
+import { UpdateUserDto } from './dto/update-user.dto.js';
+
+
+@Injectable()
+export class UsersService {
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+  ) {}
+
+  async create(createUserDto: CreateUserDto): Promise<string> {
+    const existingUser = await this.userRepository.findOne({ 
+      where: { email: createUserDto.email } 
+    });
+    
+    if (existingUser) {
+      throw new BadRequestException('El correo electrónico ya está registrado');
+    }
+
+    const newUser = this.userRepository.create(createUserDto);
+    await this.userRepository.save(newUser);
+    
+    return 'Usuario creado correctamente';
+  }
+
+  async findAll() {
+    const users = await this.userRepository.find();
+    return users.map(user => ({
+      id: user.id,
+      role_id: user.role_id,
+      email: user.email,
+      is_active: user.is_active,
+      created_at: user.created_at,
+    }));
+  }
+
+  async findOne(id: number) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+
+    return {
+      id: user.id,
+      role_id: user.role_id,
+      email: user.email,
+      is_active: user.is_active,
+      created_at: user.created_at,
+    };
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<string> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+
+    Object.assign(user, updateUserDto);
+    await this.userRepository.save(user);
+
+    return 'Usuario actualizado correctamente';
+  }
+
+  async remove(id: number): Promise<string> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    
+    if (!user) {
+      throw new NotFoundException(`El usuario con ID ${id} que intentas eliminar no existe`);
+    }
+
+    await this.userRepository.remove(user);
+    
+    return 'Usuario eliminado correctamente';
+  }
+}
+</file>
+
+<file path="src/app.controller.spec.ts">
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
+
+describe('AppController', () => {
+  let appController: AppController;
+
+  beforeEach(async () => {
+    const app: TestingModule = await Test.createTestingModule({
+      controllers: [AppController],
+      providers: [AppService],
+    }).compile();
+
+    appController = app.get<AppController>(AppController);
+  });
+
+  describe('root', () => {
+    it('should return "Hello World!"', () => {
+      expect(appController.getHello()).toBe('Hello World!');
+    });
+  });
+});
+</file>
+
+<file path="src/app.controller.ts">
+import { Controller, Get } from '@nestjs/common';
+import { AppService } from './app.service.js';
+
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get()
+  getHello(): string {
+    return this.appService.getHello();
+  }
+}
+</file>
+
+<file path="src/app.module.ts">
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/constants.js';
+import { UsersModule } from './users/users.module.js';
+import { RolesModule } from './roles/roles.module.js';
+import { PeopleModule } from './people/people.module.js';
+import { AuthModule } from './auth/auth.module.js';
+import { MembershipPlansModule } from './membership-plans/membership-plans.module.js';
+import { UserMembershipsModule } from './user-memberships/user-memberships.module.js';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>(DB_HOST),
+        port: configService.get<number>(DB_PORT) ?? 3306,
+        username: configService.get<string>(DB_USER),
+        password: configService.get<string>(DB_PASSWORD),
+        database: configService.get<string>(DB_DATABASE),
+        autoLoadEntities: true,
+        synchronize: true,
+        logging: false,
+      }),
+      inject: [ConfigService],
+    }),
+    UsersModule,
+    RolesModule,
+    PeopleModule,
+    AuthModule,
+    MembershipPlansModule,
+    UserMembershipsModule,
+  ],
+  controllers: [],
+  providers: [],
+})
+export class AppModule {}
+</file>
+
+<file path="src/app.service.ts">
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AppService {
+  getHello(): string {
+    return 'Hello World!';
+  }
+}
+</file>
+
+<file path="src/main.ts">
+import { NestFactory } from '@nestjs/core';
+
+import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { SERVER_PORT } from './config/constants.js';
+import { AppModule } from './app.module.js';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { cors: true });
+
+  // Configuración de Swagger
+  const config = new DocumentBuilder()
+    .setTitle('API de Atleta x Gym')
+    .setDescription('La API para gestionar el sistema de Atleta x Gym')
+    .setVersion('1.0')
+    .addTag('users')
+    .addTag('auth')
+    .addTag('people')
+    .addTag('roles')
+    .addTag('memberships')
+    .addTag('payments')
+    .build();
+    
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+  const configService = app.get(ConfigService);
+  const port = +(configService.get<number>(SERVER_PORT) ?? 3000);
+
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
+  console.log(`Swagger documentation available at: http://localhost:${port}/api`);
+}
+bootstrap();
+</file>
+
+<file path="test/app.e2e-spec.ts">
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { App } from 'supertest/types';
+import { AppModule } from './../src/app.module.js';
+
+describe('AppController (e2e)', () => {
+  let app: INestApplication<App>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  it('/ (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/')
+      .expect(200)
+      .expect('Hello World!');
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+});
+</file>
+
+<file path=".gitignore">
+# compiled output
+/dist
+/node_modules
+/build
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# temp directory
+.temp
+.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+</file>
+
+<file path=".oxlintrc.json">
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "rules": {
+    "typescript/no-explicit-any": "off",
+    "typescript/no-floating-promises": "error"
+  },
+  "env": {
+    "node": true
+  }
+}
+</file>
+
+<file path=".prettierrc">
+{
+  "singleQuote": true,
+  "trailingComma": "all"
+}
+</file>
+
+<file path="nest-cli.json">
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true
+  }
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "build": "nest build",
+    "deploy": "nest deploy",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "oxlint --type-aware src/ test/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
+    "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/config": "^12.0.1",
+    "@nestjs/core": "^12.0.1",
+    "@nestjs/jwt": "^12.0.3",
+    "@nestjs/observe": "^0.3.0",
+    "@nestjs/passport": "^12.0.0",
+    "@nestjs/platform-express": "^12.0.1",
+    "@nestjs/swagger": "^12.0.2",
+    "@nestjs/typeorm": "^12.0.2",
+    "bcrypt": "^6.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "handlebars": "^4.7.10",
+    "mysql2": "^3.24.5",
+    "nodemailer": "^10.2.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "swagger-ui-express": "^5.0.1",
+    "typeorm": "^1.1.2"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^12.0.0",
+    "@nestjs/mau": "^0.2.6",
+    "@nestjs/schematics": "^12.0.0",
+    "@nestjs/testing": "^12.0.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.0.0",
+    "@types/nodemailer": "^8.0.2",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/supertest": "^7.0.0",
+    "@vitest/coverage-v8": "^4.1.2",
+    "oxlint": "^1.58.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "prettier": "^3.4.2",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "typescript": "^6.0.2",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.1.2"
+  }
+}
+</file>
+
+<file path="README.md">
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
+
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
+
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+
+## Description
+
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+
+## Project setup
+
+```bash
+$ npm install
+```
+
+## Compile and run the project
+
+```bash
+# development
+$ npm run start
+
+# watch mode
+$ npm run start:dev
+
+# production mode
+$ npm run start:prod
+```
+
+## Run tests
+
+```bash
+# unit tests
+$ npm run test
+
+# e2e tests
+$ npm run test:e2e
+
+# test coverage
+$ npm run test:cov
+```
+
+## Deployment
+
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+
+```bash
+$ npm install -g @nestjs/mau
+$ mau deploy
+```
+
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+
+## Observability
+
+In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+
+[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+
+- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
+- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
+- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
+- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
+- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
+- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
+- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
+- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+
+This project is already instrumented. Create a free account at [observe.nestjs.com](https://observe.nestjs.com), add an application, and paste the generated app key and secret into the `ObserveModule.forRoot()` call in `src/app.module.ts`.
+
+The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+
+## Resources
+
+Check out a few resources that may come in handy when working with NestJS:
+
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+
+## Support
+
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+
+## Stay in touch
+
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
+
+## License
+
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+</file>
+
+<file path="tsconfig.build.json">
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "types": ["vitest/globals", "node"]
+  }
+}
+</file>
+
+<file path="vitest.config.e2e.ts">
+import { defineConfig } from 'vitest/config';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
+export default defineConfig({
+  plugins: [tsconfigPaths()],
+  test: {
+    globals: true,
+    root: './',
+    include: ['**/*.e2e-spec.ts'],
+  },
+});
+</file>
+
+<file path="vitest.config.ts">
+import { defineConfig } from 'vitest/config';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
+export default defineConfig({
+  // Resolves the path aliases declared in tsconfig.json, including the ones
+  // added by `nest g library`.
+  plugins: [tsconfigPaths()],
+  test: {
+    globals: true,
+    root: './',
+    include: ['**/*.spec.ts'],
+  },
+});
+</file>
+
+</files>
