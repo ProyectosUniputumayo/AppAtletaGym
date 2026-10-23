@@ -16,8 +16,8 @@ export class MembershipPlanEntity {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price: number; // Ej: 70000, 60000, 56000, etc.
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  price: number;
 
   @Column({ 
     type: 'enum', 

@@ -9,6 +9,7 @@ import { UserRoleEntity } from '../roles/entities/user-role.entity.js';
 import { CreateUserMembershipDto } from './dtos/create-user-membership.dto.js';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
+import { PaymentsAuditService } from '../payments-audit/payments-audit.service.js';
 
 @Injectable()
 export class UserMembershipsService {
@@ -23,6 +24,7 @@ export class UserMembershipsService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(UserRoleEntity)
     private readonly userRoleRepository: Repository<UserRoleEntity>,
+    private readonly paymentsAuditService: PaymentsAuditService,
   ) {}
 
   async createCheckoutOrManual(dto: CreateUserMembershipDto, authUserId?: string) {
@@ -105,13 +107,22 @@ export class UserMembershipsService {
     }
 
     // --- FLUJO 2 y 3 (Wompi Online): Generar firma de integridad Sandbox ---
-    const amountInCents = Number(plan.price) * 100;
+    const amountInCents = Math.round(parseFloat(plan.price.toString()) * 100);
     const currency = 'COP';
     const reference = `ATLETA-GYM-${userMembership.id}`;
     
     const integritySecret = process.env.WOMPI_INTEGRITY_SECRET || 'test_integrity_secret';
     const concatenated = `${reference}${amountInCents}${currency}${integritySecret}`;
     const signature = crypto.createHash('sha256').update(concatenated).digest('hex');
+
+    // --- REGISTRAR INTENCIÓN DE PAGO EN MONGODB ---
+    await this.paymentsAuditService.createTransaction({
+      membershipId: userMembership.id,
+      reference,
+      amountInCents,
+      currency,
+      status: 'PENDING',
+    });
 
     return {
       message: 'Intención de compra generada exitosamente para Wompi',
@@ -219,6 +230,13 @@ export class UserMembershipsService {
         userMembership.paymentStatus = PaymentStatus.REJECTED;
         await this.userMembershipRepository.save(userMembership);
       }
+
+      // --- ACTUALIZAR REGISTRO EN MONGODB CON LA RESPUESTA DE WOMPI ---
+      await this.paymentsAuditService.updateTransactionStatusByReference(
+        reference,
+        status,
+        eventData,
+      );
     }
     return { received: true };
   }

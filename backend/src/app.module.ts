@@ -8,12 +8,20 @@ import { PeopleModule } from './people/people.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { MembershipPlansModule } from './membership-plans/membership-plans.module.js';
 import { UserMembershipsModule } from './user-memberships/user-memberships.module.js';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI') || 'mongodb://localhost:27017/atleta-gym-db',
+      }),
+      inject: [ConfigService],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
