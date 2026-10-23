@@ -13,6 +13,12 @@ export class RegisterDto {
   @IsNotEmpty()
   password: string;
 
+  // NUEVO: Cédula o documento de identidad para enlazarlo con la tabla people
+  @ApiPropertyOptional({ example: '1234567890' })
+  @IsOptional()
+  @IsString()
+  documentNumber?: string;
+
   @ApiProperty({ example: 'Marlon' })
   @IsString()
   @IsNotEmpty()
