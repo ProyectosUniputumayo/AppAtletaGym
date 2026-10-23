@@ -91,8 +91,11 @@ export function PhotoStudio({
     setCameraActive(false);
   }, []);
 
-  // Reset the editor every time it opens; always release the camera on close/unmount.
-  useEffect(() => {
+  // Reset the editor every time it opens: the state is adjusted during render
+  // (React's "adjust state when a prop changes" pattern) instead of in an effect.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) {
       setImage(null);
       setZoom(1);
@@ -100,9 +103,14 @@ export function PhotoStudio({
       setBg('#FFFFFF');
       setCameraError(null);
       setSaving(false);
-    } else {
-      stopCamera();
     }
+  }
+
+  // Always release the camera when the editor closes or unmounts: the stop
+  // happens in the effect's cleanup (external system), not synchronously.
+  useEffect(() => {
+    if (!open) return;
+    return () => stopCamera();
   }, [open, stopCamera]);
 
   useEffect(() => () => stopCamera(), [stopCamera]);

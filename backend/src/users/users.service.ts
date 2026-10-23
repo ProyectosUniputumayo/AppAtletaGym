@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { UserEntity } from './entities/user.entity.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
@@ -22,7 +23,10 @@ export class UsersService {
       throw new BadRequestException('El correo electrónico ya está registrado');
     }
 
-    const newUser = this.userRepository.create(createUserDto);
+    const newUser = this.userRepository.create({
+      ...createUserDto,
+      password_hash: await bcrypt.hash(createUserDto.password_hash, 10),
+    });
     await this.userRepository.save(newUser);
     
     return 'Usuario creado correctamente';

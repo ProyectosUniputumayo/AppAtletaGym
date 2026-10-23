@@ -43,7 +43,13 @@ export function formatDateTimeTZ(
       ...options,
     }).format(date);
   } catch {
-    return date.toLocaleString(currentLocale());
+    // Zona inválida: reintenta con la misma zona vía toLocaleString y, si
+    // tampoco es válida, cae al reloj local del navegador.
+    try {
+      return date.toLocaleString(currentLocale(), { timeZone });
+    } catch {
+      return date.toLocaleString(currentLocale());
+    }
   }
 }
 

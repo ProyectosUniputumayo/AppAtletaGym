@@ -23,10 +23,10 @@ export class UserMembershipEntity {
   @JoinColumn({ name: 'membership_plan_id' })
   membershipPlan: MembershipPlanEntity;
 
-  @Column({ type: 'timestamp', name: 'start_date' })
+  @Column({ type: 'datetime', name: 'start_date' })
   startDate: Date;
 
-  @Column({ type: 'timestamp', name: 'end_date' })
+  @Column({ type: 'datetime', name: 'end_date' })
   endDate: Date;
 
   @Column({ type: 'int', name: 'sessions_remaining', nullable: true })

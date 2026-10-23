@@ -120,8 +120,16 @@ export function NotificationPreferencesCard() {
         <CardTitle icon={<Bell className="h-4 w-4" />}>Mis preferencias</CardTitle>
       </CardHeader>
       <CardContent>
-        {query.isLoading || !prefs ? (
+        {query.isLoading ? (
           <SkeletonList rows={6} />
+        ) : query.isError ? (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {getApiErrorMessage(query.error, 'No se pudieron cargar tus preferencias')}
+          </p>
+        ) : !prefs ? (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No hay preferencias de notificación disponibles.
+          </p>
         ) : (
           <div className="space-y-4">
             {/* Canales de notificación */}
