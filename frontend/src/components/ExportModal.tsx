@@ -77,16 +77,23 @@ export function ExportModal({ open, onClose, entity, entityLabel }: ExportModalP
 
   const fields = fieldsQuery.data ?? [];
 
-  // Reset on every open; pre-select all fields once they arrive.
-  useEffect(() => {
-    if (!open) return;
-    seededRef.current = false;
-    setFormat('csv');
-    setSelected(new Set());
-  }, [open]);
+  // Reset on every open (state adjusted during render instead of a synchronous
+  // setState inside an effect); the seeding itself happens once the fields arrive.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setFormat('csv');
+      setSelected(new Set());
+    }
+  }
 
   useEffect(() => {
-    if (open && fieldsQuery.data && !seededRef.current) {
+    if (!open) {
+      seededRef.current = false;
+      return;
+    }
+    if (fieldsQuery.data && !seededRef.current) {
       seededRef.current = true;
       setSelected(new Set(fieldsQuery.data.map((field) => field.key)));
     }

@@ -1,28 +1,47 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import type { AuthTokens } from '../types';
+import type { AuthTokens, AuthUser } from '../types';
 
 export const ACCESS_TOKEN_KEY = 'talentos.access';
 export const REFRESH_TOKEN_KEY = 'talentos.refresh';
+export const AUTH_USER_KEY = 'talentos.user';
 
 export function getAccessToken(): string | null {
   return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
-export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
-}
-
 export function saveTokens(tokens: AuthTokens): void {
   localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+  if (tokens.refreshToken) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+  } else {
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  }
+}
+
+/** The backend exposes no /auth/me, so the logged-in user is kept locally. */
+export function getStoredUser(): AuthUser | null {
+  const raw = localStorage.getItem(AUTH_USER_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as AuthUser;
+  } catch {
+    return null;
+  }
+}
+
+export function saveStoredUser(user: AuthUser): void {
+  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
 }
 
 export function clearTokens(): void {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USER_KEY);
 }
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
+// The backend serves its routes at the root (POST /auth/login, GET /people, …)
+// with no /api prefix, so the dev server proxies them straight to NestJS.
+const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
 export const api = axios.create({
   baseURL,
@@ -38,31 +57,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ---- Response interceptor: refresh once on 401 ----
+// ---- Response interceptor: the backend issues no refresh token, so a 401
+// simply means the session is over: clear it and go back to /login. ----
 
 interface RetriableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
-}
-
-/**
- * Shared refresh promise so that concurrent 401s trigger a single
- * POST /auth/refresh instead of a stampede.
- */
-let refreshPromise: Promise<string> | null = null;
-
-async function refreshTokens(): Promise<string> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) {
-    throw new Error('No refresh token available');
-  }
-  // Use a bare axios instance to avoid recursive interceptors.
-  const { data } = await axios.post<AuthTokens>(
-    `${baseURL.replace(/\/$/, '')}/auth/refresh`,
-    { refreshToken },
-    { headers: { 'Content-Type': 'application/json' } },
-  );
-  saveTokens(data);
-  return data.accessToken;
 }
 
 function redirectToLogin(): void {
@@ -74,32 +73,16 @@ function redirectToLogin(): void {
 
 api.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
+  (error: AxiosError) => {
     const original = error.config as RetriableRequestConfig | undefined;
     const status = error.response?.status;
     const url = original?.url ?? '';
 
-    const isAuthEndpoint =
-      url.includes('/auth/login') ||
-      url.includes('/auth/refresh') ||
-      url.includes('/auth/logout') ||
-      url.includes('/auth/otp/');
+    const isAuthEndpoint = url.includes('/auth/login');
 
     if (status === 401 && original && !original._retry && !isAuthEndpoint) {
       original._retry = true;
-      try {
-        if (!refreshPromise) {
-          refreshPromise = refreshTokens().finally(() => {
-            refreshPromise = null;
-          });
-        }
-        const newAccessToken = await refreshPromise;
-        original.headers.Authorization = `Bearer ${newAccessToken}`;
-        return api(original);
-      } catch (refreshError) {
-        redirectToLogin();
-        return Promise.reject(refreshError);
-      }
+      redirectToLogin();
     }
 
     return Promise.reject(error);

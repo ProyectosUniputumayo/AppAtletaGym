@@ -49,8 +49,16 @@ export function PreferencesCard() {
         <CardTitle icon={<Globe className="h-4 w-4" />}>Preferencias regionales</CardTitle>
       </CardHeader>
       <CardContent>
-        {query.isLoading || !prefs ? (
+        {query.isLoading ? (
           <SkeletonForm fields={4} />
+        ) : query.isError ? (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {getApiErrorMessage(query.error, 'No se pudieron cargar tus preferencias')}
+          </p>
+        ) : !prefs ? (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No hay preferencias disponibles.
+          </p>
         ) : (
           <div className="max-w-2xl space-y-4">
             <FormSection

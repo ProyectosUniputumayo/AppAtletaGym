@@ -81,12 +81,21 @@ export function ImportCsvModal({ open, onClose, entity, entityLabel, onSuccess }
     staleTime: 30 * 60 * 1000,
   });
 
-  // Al abrir: precarga el CSV de plantilla en el recuadro y limpia estado.
+  // Al abrir: limpia el estado del diálogo (ajuste de estado durante el render,
+  // en lugar de un setState síncrono dentro de un effect).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setFile(null);
+      setReport(null);
+      setShowGuide(false);
+    }
+  }
+
+  // Al abrir: precarga el CSV de plantilla en el recuadro (petición de red → effect).
   useEffect(() => {
     if (!open) return;
-    setFile(null);
-    setReport(null);
-    setShowGuide(false);
     let cancelled = false;
     void (async () => {
       try {

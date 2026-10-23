@@ -16,7 +16,8 @@ export interface AuthUser {
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string;
+  /** Optional: the current backend only issues a single access token. */
+  refreshToken?: string;
 }
 
 export interface LoginResponse extends AuthTokens {

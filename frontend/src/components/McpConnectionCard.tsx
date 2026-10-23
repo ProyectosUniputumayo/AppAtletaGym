@@ -98,11 +98,15 @@ export function McpConnectionCard() {
 
       {open && (
         <CardContent className="space-y-4 border-t border-gray-100 pt-4 dark:border-gray-800">
-          {query.isLoading || !info ? (
+          {query.isLoading ? (
             <SkeletonForm fields={3} />
           ) : query.isError ? (
             <p className="text-sm text-red-600 dark:text-red-400">
               {getApiErrorMessage(query.error, 'No se pudo obtener la conexión MCP')}
+            </p>
+          ) : !info ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              No hay información de conexión disponible.
             </p>
           ) : (
             <>
