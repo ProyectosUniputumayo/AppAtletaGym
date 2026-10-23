@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module.js';
 import { RolesModule } from './roles/roles.module.js';
 import { PeopleModule } from './people/people.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { MembershipPlansModule } from './membership-plans/membership-plans.module.js';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AuthModule } from './auth/auth.module.js';
     RolesModule,
     PeopleModule,
     AuthModule,
+    MembershipPlansModule,
   ],
   controllers: [],
   providers: [],
