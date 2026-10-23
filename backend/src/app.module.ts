@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/constants.js';
 import { UsersModule } from './users/users.module.js';
+import { RolesModule } from './roles/roles.module.js';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module.js';
       inject: [ConfigService],
     }),
     UsersModule,
+    RolesModule,
   ],
   controllers: [],
   providers: [],
