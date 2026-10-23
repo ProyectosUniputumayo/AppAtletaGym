@@ -7,3 +7,9 @@ export const DB_DATABASE = 'DB_DATABASE';
 export const SERVER_PORT = 'SERVER_PORT';
 
 export const JWT_SECRET = 'JWT_SECRET';
+
+
+export const MAIL_HOST = 'MAIL_HOST';
+export const MAIL_PORT = 'MAIL_PORT';
+export const MAIL_USER = 'MAIL_USER';
+export const MAIL_PASSWORD = 'MAIL_PASSWORD';
