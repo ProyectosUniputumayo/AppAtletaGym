@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import type { UserRoleEntity } from '../../roles/entities/user-role.entity.js'; 
 
 @Entity('users')
 export class UserEntity {
@@ -22,4 +23,7 @@ export class UserEntity {
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
+
+  @OneToMany('UserRoleEntity', (userRole: UserRoleEntity) => userRole.user)
+  userRoles: UserRoleEntity[];
 }
