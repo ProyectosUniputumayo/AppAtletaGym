@@ -7,10 +7,6 @@ export class UpdateUserDto {
   @IsNumber()
   role_id?: number;
 
-  @ApiPropertyOptional({ example: 'JhonDoe_updated', description: 'Nuevo nombre de usuario' })
-  @IsOptional()
-  @IsString()
-  username?: string;
 
   @ApiPropertyOptional({ example: 'user.new@example.com', description: 'Nuevo correo electrónico' })
   @IsOptional()

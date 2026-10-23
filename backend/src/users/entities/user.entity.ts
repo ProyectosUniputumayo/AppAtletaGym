@@ -9,9 +9,6 @@ export class UserEntity {
   @Column({ type: 'int', nullable: false })
   role_id: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: false })
-  username: string;
-
   @Column({ type: 'varchar', length: 100, unique: true, nullable: false })
   email: string;
 

@@ -5,6 +5,7 @@ import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/co
 import { UsersModule } from './users/users.module.js';
 import { RolesModule } from './roles/roles.module.js';
 import { PeopleModule } from './people/people.module.js';
+import { AuthModule } from './auth/auth.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PeopleModule } from './people/people.module.js';
     UsersModule,
     RolesModule,
     PeopleModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
