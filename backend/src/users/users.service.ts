@@ -33,7 +33,6 @@ export class UsersService {
     return users.map(user => ({
       id: user.id,
       role_id: user.role_id,
-      username: user.username,
       email: user.email,
       is_active: user.is_active,
       created_at: user.created_at,
@@ -50,7 +49,6 @@ export class UsersService {
     return {
       id: user.id,
       role_id: user.role_id,
-      username: user.username,
       email: user.email,
       is_active: user.is_active,
       created_at: user.created_at,

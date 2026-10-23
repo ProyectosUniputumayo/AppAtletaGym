@@ -7,10 +7,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   role_id: number;
 
-  @ApiProperty({ example: 'marlon_dev', description: 'Nombre de usuario único' })
-  @IsString()
-  @IsNotEmpty()
-  username: string;
 
   @ApiProperty({ example: 'rootn@example.com', description: 'Correo electrónico del usuario' })
   @IsEmail()
