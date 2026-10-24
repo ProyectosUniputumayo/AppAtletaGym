@@ -1,7 +1,7 @@
 // Formateo de fechas/horas en la ZONA HORARIA EFECTIVA del usuario (usuario →
 // sede → organización). Usa Intl (sin dependencias) respetando el idioma activo.
 
-import i18n from '../i18n';
+import i18n from '@/i18n';
 
 /** Zonas horarias comunes de la región (para los selectores). */
 export const COMMON_TIMEZONES: string[] = [
@@ -90,3 +90,7 @@ export function isValidTimezone(tz: string): boolean {
     return false;
   }
 }
+
+
+
+

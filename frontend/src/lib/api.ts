@@ -1,5 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import type { AuthTokens, AuthUser } from '../types';
+import type { AuthTokens, AuthUser } from '@/types';
 
 export const ACCESS_TOKEN_KEY = 'talentos.access';
 export const REFRESH_TOKEN_KEY = 'talentos.refresh';
@@ -105,3 +105,7 @@ export function getApiErrorMessage(error: unknown, fallback = 'Ocurrió un error
 }
 
 export default api;
+
+
+
+

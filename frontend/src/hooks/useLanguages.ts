@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '../lib/api';
-import { SUPPORTED_LANGUAGES } from '../i18n';
+import api from '@/lib/api';
+import { SUPPORTED_LANGUAGES } from '@/i18n';
 
 export interface LanguageOption {
   code: string;
@@ -47,3 +47,7 @@ export function useLanguages() {
   });
   return { ...query, config: query.data ?? FALLBACK };
 }
+
+
+
+
