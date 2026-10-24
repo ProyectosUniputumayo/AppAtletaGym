@@ -1,3 +1,4 @@
+/* eslint-disable react/only-export-components */
 import {
   createContext,
   useCallback,
@@ -60,3 +61,7 @@ export function useTheme(): ThemeContextValue {
   if (!ctx) throw new Error('useTheme must be used within a ThemeProvider');
   return ctx;
 }
+
+
+
+

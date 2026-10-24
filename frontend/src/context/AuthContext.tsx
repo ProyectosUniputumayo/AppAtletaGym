@@ -1,3 +1,4 @@
+/* eslint-disable react/only-export-components */
 import {
   createContext,
   useCallback,
@@ -6,8 +7,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import api, { clearTokens, getAccessToken, getStoredUser, saveStoredUser, saveTokens } from '../lib/api';
-import type { AuthUser, LoginResult } from '../types';
+import api, { clearTokens, getAccessToken, getStoredUser, saveStoredUser, saveTokens } from '@/lib/api';
+import type { AuthUser, LoginResult } from '@/types';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -110,3 +111,7 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
   return ctx;
 }
+
+
+
+

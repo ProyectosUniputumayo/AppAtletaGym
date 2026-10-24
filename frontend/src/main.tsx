@@ -5,8 +5,8 @@ import './i18n'
 import './index.css'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
-import { ToastProvider } from './components/ui/Toast'
-import App from './App.tsx'
+import { ToastProvider } from '@/shared/ui'
+import App from './app/App.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,3 +30,6 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </StrictMode>,
 )
+
+
+
