@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AlertTriangle, RefreshCw, RotateCcw } from 'lucide-react';
@@ -73,8 +74,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (!error) return this.props.children;
 
     const {
-      title = 'No se pudo cargar esta sección',
-      description = 'Ocurrió un error inesperado al mostrar el contenido. Puedes reintentar, recargar la página o volver a otra sección desde el menú.',
+      title = i18n.t('ui.errorTitle', { ns: 'gym' }),
+      description = i18n.t('ui.errorDescription', { ns: 'gym' }),
     } = this.props;
 
     return (
@@ -98,14 +99,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   leftIcon={<RotateCcw className="h-4 w-4" aria-hidden="true" />}
                   onClick={this.handleRetry}
                 >
-                  Reintentar
+                  {i18n.t('ui.retry', { ns: 'gym' })}
                 </Button>
                 <Button
                   variant="outline"
                   leftIcon={<RefreshCw className="h-4 w-4" aria-hidden="true" />}
                   onClick={this.handleReload}
                 >
-                  Recargar página
+                  {i18n.t('ui.reload', { ns: 'gym' })}
                 </Button>
               </div>
             }
@@ -114,7 +115,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           {import.meta.env.DEV && (
             <details className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-left dark:border-red-900/50 dark:bg-red-900/20">
               <summary className="cursor-pointer text-xs font-semibold text-red-700 dark:text-red-300">
-                Detalle técnico (solo en desarrollo)
+                {i18n.t('ui.techDetail', { ns: 'gym' })}
               </summary>
               <p className="mt-2 break-words text-xs font-medium text-red-800 dark:text-red-200">
                 {error.message}

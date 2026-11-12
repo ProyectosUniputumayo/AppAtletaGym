@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Languages } from 'lucide-react';
-import api from '@/lib/api';
 import { changeLanguage } from '@/i18n';
 import { useLanguages } from '@/hooks/useLanguages';
 import { cn } from '@/lib/utils';
@@ -10,7 +9,7 @@ import { cn } from '@/lib/utils';
  *  organización (habilitados), persiste en localStorage y sincroniza la
  *  preferencia del usuario si hay sesión. */
 export function LanguageSelector() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation('gym');
   const { config } = useLanguages();
   const languages = config.languages.filter((l) => l.enabled);
   const [open, setOpen] = useState(false);
@@ -32,8 +31,6 @@ export function LanguageSelector() {
   function select(code: string) {
     changeLanguage(code);
     setOpen(false);
-    // Sincroniza la preferencia del usuario (si hay sesión); ignora si falla.
-    void api.patch('/me/preferences', { language: code }).catch(() => undefined);
   }
 
   return (
@@ -44,7 +41,7 @@ export function LanguageSelector() {
         className="flex items-center gap-1.5 rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Idioma / Language"
+        aria-label={t('nav.languageAria')}
         title={current.label}
       >
         <Languages className="h-5 w-5" aria-hidden="true" />

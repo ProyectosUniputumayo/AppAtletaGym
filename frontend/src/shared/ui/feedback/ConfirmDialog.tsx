@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
 import Button from '@/shared/ui/primitives/Button';
 import Modal from '@/shared/ui/feedback/Modal';
@@ -17,12 +18,13 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Eliminar',
-  cancelLabel = 'Cancelar',
+  confirmLabel,
+  cancelLabel,
   isLoading = false,
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation('gym');
   return (
     <Modal
       variant="center"
@@ -33,10 +35,10 @@ export function ConfirmDialog({
       footer={
         <>
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            {cancelLabel}
+            {cancelLabel ?? t('ui.cancel')}
           </Button>
           <Button variant="danger" onClick={onConfirm} isLoading={isLoading}>
-            {confirmLabel}
+            {confirmLabel ?? t('ui.delete')}
           </Button>
         </>
       }

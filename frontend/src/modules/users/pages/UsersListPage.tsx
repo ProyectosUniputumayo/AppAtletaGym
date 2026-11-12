@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Trash2, Users } from 'lucide-react';
@@ -27,6 +28,7 @@ interface CreateUserPayload {
 
 /** Módulo Usuarios: listado, búsqueda, alta y baja (GET/POST/DELETE /users). */
 export function UsersListPage() {
+  const { t, i18n } = useTranslation('gym');
   const { hasPermission } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -57,21 +59,21 @@ export function UsersListPage() {
     mutationFn: async (payload: CreateUserPayload) =>
       (await api.post('/users', payload)).data,
     onSuccess: () => {
-      toast.success('Usuario creado correctamente');
+      toast.success(t('users.created'));
       void queryClient.invalidateQueries({ queryKey: ['users'] });
       closeCreate();
     },
-    onError: (e) => toast.error(getApiErrorMessage(e, 'No se pudo crear el usuario')),
+    onError: (e) => toast.error(getApiErrorMessage(e, t('users.createFailed'))),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => (await api.delete(`/users/${id}`)).data,
     onSuccess: () => {
-      toast.success('Usuario eliminado correctamente');
+      toast.success(t('users.deleted'));
       void queryClient.invalidateQueries({ queryKey: ['users'] });
       setDeleteTarget(null);
     },
-    onError: (e) => toast.error(getApiErrorMessage(e, 'No se pudo eliminar el usuario')),
+    onError: (e) => toast.error(getApiErrorMessage(e, t('users.deleteFailed'))),
   });
 
   const rolesById = useMemo(() => {
@@ -101,11 +103,11 @@ export function UsersListPage() {
     event.preventDefault();
     setFormError(null);
     if (!formEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formEmail.trim()) || !formRoleId) {
-      setFormError('Ingresa un correo válido y selecciona un rol.');
+      setFormError(t('users.errEmailRole'));
       return;
     }
     if (formPassword.length < 6) {
-      setFormError('La contraseña debe tener al menos 6 caracteres.');
+      setFormError(t('users.errPassword'));
       return;
     }
     createMutation.mutate({
@@ -119,38 +121,38 @@ export function UsersListPage() {
     return (
       <EmptyState
         icon={Users}
-        title="No tienes acceso a este módulo"
-        description="Consulta a un administrador si necesitas gestionar usuarios."
+        title={t('users.noAccess')}
+        description={t('users.noAccessDesc')}
       />
     );
   }
 
   const columns: TableColumn<UserRow>[] = [
     { key: 'id', label: 'ID', className: 'w-16 text-gray-400 dark:text-gray-500' },
-    { key: 'email', label: 'Correo', className: 'font-medium text-gray-900 dark:text-gray-100' },
+    { key: 'email', label: t('users.colEmail'), className: 'font-medium text-gray-900 dark:text-gray-100' },
     {
       key: 'role',
-      label: 'Rol',
+      label: t('users.colRole'),
       render: (row) => (
         <Badge variant={row.role_id === 1 ? 'purple' : 'blue'}>
-          {rolesById.get(row.role_id) ?? `Rol #${row.role_id}`}
+          {rolesById.get(row.role_id) ?? `${t('users.colRole')} #${row.role_id}`}
         </Badge>
       ),
     },
     {
       key: 'is_active',
-      label: 'Estado',
+      label: t('users.colStatus'),
       render: (row) =>
         row.is_active ? (
-          <Badge variant="green">Activo</Badge>
+          <Badge variant="green">{t('users.statusActive')}</Badge>
         ) : (
-          <Badge variant="red">Inactivo</Badge>
+          <Badge variant="red">{t('users.statusInactive')}</Badge>
         ),
     },
     {
       key: 'created_at',
-      label: 'Creado',
-      render: (row) => new Date(row.created_at).toLocaleDateString('es-CO'),
+      label: t('users.colCreated'),
+      render: (row) => new Date(row.created_at).toLocaleDateString(i18n.language),
     },
     {
       key: 'actions',
@@ -160,7 +162,7 @@ export function UsersListPage() {
         <Button
           variant="ghost"
           size="sm"
-          aria-label={`Eliminar ${row.email}`}
+          aria-label={t('users.deleteAria', { email: row.email })}
           className="text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
           onClick={() => setDeleteTarget(row)}
         >
@@ -171,15 +173,15 @@ export function UsersListPage() {
   ];
 
   const stats: StatItem[] = [
-    { label: 'Total de usuarios', value: usersQuery.data?.length ?? 0, icon: Users },
+    { label: t('users.total'), value: usersQuery.data?.length ?? 0, icon: Users },
     {
-      label: 'Activos',
+      label: t('users.active'),
       value: (usersQuery.data ?? []).filter((u) => Boolean(u.is_active)).length,
       icon: Users,
       iconClassName: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-300',
     },
     {
-      label: 'Resultados',
+      label: t('users.results'),
       value: filteredRows.length,
       icon: Search,
       iconClassName: 'bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-300',
@@ -190,11 +192,11 @@ export function UsersListPage() {
     <FadeIn>
       <div className="space-y-6">
         <PageHeader
-        title="Usuarios"
-        subtitle="Cuentas de acceso al sistema"
+        title={t('users.title')}
+        subtitle={t('users.subtitle')}
         actions={
           <Button leftIcon={<Plus className="h-4 w-4" aria-hidden="true" />} onClick={() => setCreateOpen(true)}>
-            Nuevo usuario
+            {t('users.newUser')}
           </Button>
         }
       />
@@ -203,11 +205,11 @@ export function UsersListPage() {
 
       <div className="max-w-sm">
         <Input
-          placeholder="Buscar por correo o ID…"
+          placeholder={t('users.search')}
           icon={<Search className="h-4 w-4" aria-hidden="true" />}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          aria-label="Buscar usuarios"
+          aria-label={t('users.searchAria')}
         />
       </div>
 
@@ -216,14 +218,14 @@ export function UsersListPage() {
         rows={filteredRows}
         rowKey={(row) => row.id}
         loading={usersQuery.isLoading}
-        error={usersQuery.isError ? getApiErrorMessage(usersQuery.error, 'No se pudieron cargar los usuarios') : null}
+        error={usersQuery.isError ? getApiErrorMessage(usersQuery.error, t('users.loadFailed')) : null}
         onRetry={() => void usersQuery.refetch()}
         emptyIcon={Users}
-        emptyTitle={search ? `Sin resultados para «${search}»` : 'Aún no hay usuarios'}
+        emptyTitle={search ? t('users.emptySearch', { term: search }) : t('users.emptyNone')}
         emptyDescription={
           search
-            ? 'Prueba con otro correo o identificador.'
-            : 'Crea el primer usuario con el botón «Nuevo usuario».'
+            ? t('users.emptySearchDesc')
+            : t('users.emptyNoneDesc')
         }
       />
 
@@ -231,26 +233,26 @@ export function UsersListPage() {
       <Modal
         open={createOpen}
         onClose={closeCreate}
-        title="Nuevo usuario"
-        subtitle="La cuenta podrá iniciar sesión de inmediato."
+        title={t('users.modalTitle')}
+        subtitle={t('users.modalSubtitle')}
         footer={
           <>
             <Button variant="outline" onClick={closeCreate} disabled={createMutation.isPending}>
-              Cancelar
+              {t('ui.cancel')}
             </Button>
             <Button
               type="submit"
               form="create-user-form"
               isLoading={createMutation.isPending}
             >
-              Guardar
+              {t('ui.save')}
             </Button>
           </>
         }
       >
         <form id="create-user-form" onSubmit={handleCreateSubmit} className="space-y-4">
           <Input
-            label="Correo electrónico"
+            label={t('users.email')}
             type="email"
             required
             autoComplete="off"
@@ -259,28 +261,28 @@ export function UsersListPage() {
             onChange={(e) => setFormEmail(e.target.value)}
           />
           <Input
-            label="Contraseña"
+            label={t('users.password')}
             type="password"
             required
             minLength={6}
             autoComplete="new-password"
-            placeholder="Mínimo 6 caracteres"
+            placeholder={t('users.passwordPlaceholder')}
             value={formPassword}
             onChange={(e) => setFormPassword(e.target.value)}
           />
           <Select
-            label="Rol"
+            label={t('users.role')}
             required
             value={formRoleId}
             onChange={(e) => setFormRoleId(e.target.value)}
           >
-            <option value="">Selecciona un rol…</option>
+            <option value="">{t('users.selectRole')}</option>
             {(rolesQuery.data ?? []).map((role) => (
               <option key={role.id} value={role.id}>
                 {role.rol_name}
               </option>
             ))}
-            {rolesQuery.isLoading && <option value="">Cargando roles…</option>}
+            {rolesQuery.isLoading && <option value="">{t('users.loadingRoles')}</option>}
           </Select>
 
           {formError && <p className="text-sm text-red-600 dark:text-red-400">{formError}</p>}
@@ -290,10 +292,10 @@ export function UsersListPage() {
       {/* Baja de usuario */}
       <ConfirmDialog
         open={deleteTarget !== null}
-        title="Eliminar usuario"
+        title={t('users.deleteTitle')}
         message={
           deleteTarget
-            ? `Se eliminará la cuenta de ${deleteTarget.email}. Esta acción no se puede deshacer.`
+            ? t('users.deleteMessage', { email: deleteTarget.email })
             : ''
         }
         isLoading={deleteMutation.isPending}

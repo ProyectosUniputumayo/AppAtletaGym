@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserMembershipEntity, PaymentStatus } from './entities/user-membership.entity.js';
@@ -13,6 +13,8 @@ import { PaymentsAuditService } from '../payments-audit/payments-audit.service.j
 
 @Injectable()
 export class UserMembershipsService {
+  private readonly logger = new Logger(UserMembershipsService.name);
+
   constructor(
     @InjectRepository(UserMembershipEntity)
     private readonly userMembershipRepository: Repository<UserMembershipEntity>,
@@ -27,7 +29,7 @@ export class UserMembershipsService {
     private readonly paymentsAuditService: PaymentsAuditService,
   ) {}
 
-  async createCheckoutOrManual(dto: CreateUserMembershipDto, authUserId?: string) {
+  async createCheckoutOrManual(dto: CreateUserMembershipDto, authUserId?: string, isStaff = false) {
     // 1. Validar plan
     const plan = await this.planRepository.findOne({ where: { id: dto.membershipPlanId } });
     if (!plan || !plan.isActive) {
@@ -38,6 +40,9 @@ export class UserMembershipsService {
 
     // --- FLUJO 1: Pago manual en recepción (Hecho por el Admin/Recepcionista para un cliente) ---
     if (dto.paymentType === 'manual') {
+      if (!isStaff) {
+        throw new ForbiddenException('Solo el personal autorizado puede registrar pagos manuales');
+      }
       if (!dto.documentNumber) {
         throw new BadRequestException('Para pagos manuales en recepción es obligatorio proporcionar la cédula del cliente');
       }
@@ -67,12 +72,15 @@ export class UserMembershipsService {
         paymentStatus: PaymentStatus.PAID,
       },
       order: { endDate: 'DESC' },
+      relations: { membershipPlan: true },
     });
 
     if (activeMembership && activeMembership.endDate > new Date()) {
-      throw new BadRequestException(
-        `El usuario ya cuenta con una membresía activa y vigente hasta el ${activeMembership.endDate.toISOString().split('T')[0]}`
-      );
+      if (plan.price <= Number(activeMembership.membershipPlan?.price ?? 0)) {
+        throw new BadRequestException(
+          'No puedes comprar un plan inferior o igual al que ya tienes activo',
+        );
+      }
     }
 
     // 2. Calcular fechas de vigencia
@@ -111,7 +119,10 @@ export class UserMembershipsService {
     const currency = 'COP';
     const reference = `ATLETA-GYM-${userMembership.id}`;
     
-    const integritySecret = process.env.WOMPI_INTEGRITY_SECRET || 'test_integrity_secret';
+    const integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
+    if (!integritySecret || !process.env.WOMPI_PUBLIC_KEY) {
+      throw new InternalServerErrorException('Wompi no está configurado en el servidor');
+    }
     const concatenated = `${reference}${amountInCents}${currency}${integritySecret}`;
     const signature = crypto.createHash('sha256').update(concatenated).digest('hex');
 
@@ -132,10 +143,39 @@ export class UserMembershipsService {
         amountInCents,
         reference,
         signature,
-        redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/payments/success`,
+        redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payments/success`,
       },
       membershipId: userMembership.id,
     };
+  }
+
+  async getMyMembership(authUserId: string) {
+    const user = await this.userRepository.findOne({ where: { id: Number(authUserId) } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const person = await this.personRepository.findOne({ where: { user_id: user.id } });
+    if (!person) throw new NotFoundException('Perfil de persona no encontrado');
+
+    const membership = await this.userMembershipRepository.findOne({
+      where: { person: { id: person.id } },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (!membership) throw new NotFoundException('No tienes membresías registradas');
+    return membership;
+  }
+
+  async getMyMembershipHistory(authUserId: string) {
+    const user = await this.userRepository.findOne({ where: { id: Number(authUserId) } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const person = await this.personRepository.findOne({ where: { user_id: user.id } });
+    if (!person) throw new NotFoundException('Perfil de persona no encontrado');
+
+    return await this.userMembershipRepository.find({
+      where: { person: { id: person.id } },
+      order: { createdAt: 'DESC' },
+    });
   }
 
   // --- Método auxiliar privado para buscar o crear al cliente por cédula (Flujos 1 y 3) ---
@@ -212,32 +252,96 @@ export class UserMembershipsService {
 
   // Webhook para sincronizar transacciones aprobadas/rechazadas desde Wompi
   async handleWompiWebhook(eventData: any) {
-    const event = eventData.event;
-    if (event === 'transaction.updated') {
-      const transaction = eventData.data.transaction;
-      const reference = transaction.reference;
-      const status = transaction.status;
+    if (eventData?.event !== 'transaction.updated') return { received: true };
 
-      const membershipId = reference.replace('ATLETA-GYM-', '');
-      const userMembership = await this.userMembershipRepository.findOne({ where: { id: membershipId } });
+    const transaction = eventData.data?.transaction;
+    const reference: string | undefined = transaction?.reference;
+    const status: string | undefined = transaction?.status;
+    if (!reference?.startsWith('ATLETA-GYM-') || !status) return { received: true };
 
-      if (!userMembership) return { received: true };
+    const membershipId = reference.replace('ATLETA-GYM-', '');
+    const userMembership = await this.userMembershipRepository.findOne({ where: { id: membershipId } });
+    if (!userMembership) return { received: true };
 
-      if (status === 'APPROVED') {
-        userMembership.paymentStatus = PaymentStatus.PAID;
-        await this.userMembershipRepository.save(userMembership);
-      } else if (status === 'DECLINED' || status === 'ERROR') {
-        userMembership.paymentStatus = PaymentStatus.REJECTED;
-        await this.userMembershipRepository.save(userMembership);
+    // Idempotencia: una membresía ya pagada no se reprocesa
+    if (userMembership.paymentStatus === PaymentStatus.PAID) return { received: true };
+
+    if (status === 'APPROVED') {
+      // Validar monto y moneda contra lo cobrado (MySQL es la fuente de verdad)
+      const expectedCents = Math.round(parseFloat(String(userMembership.amountPaid)) * 100);
+      if (transaction.amount_in_cents !== expectedCents || transaction.currency !== 'COP') {
+        this.logger.error(`Monto/moneda no coinciden para ${reference}: ${transaction.amount_in_cents} ${transaction.currency}`);
+        return { received: true };
       }
-
-      // --- ACTUALIZAR REGISTRO EN MONGODB CON LA RESPUESTA DE WOMPI ---
-      await this.paymentsAuditService.updateTransactionStatusByReference(
-        reference,
-        status,
-        eventData,
-      );
+      // La vigencia empieza al aprobarse el pago
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(startDate.getDate() + (userMembership.membershipPlan?.durationDays ?? 0));
+      userMembership.startDate = startDate;
+      userMembership.endDate = endDate;
+      userMembership.paymentStatus = PaymentStatus.PAID;
+      await this.userMembershipRepository.save(userMembership);
+    } else if (status === 'DECLINED' || status === 'ERROR' || status === 'VOIDED') {
+      userMembership.paymentStatus = PaymentStatus.REJECTED;
+      await this.userMembershipRepository.save(userMembership);
     }
+
+    await this.paymentsAuditService.updateTransactionStatusByReference(reference, status, eventData);
     return { received: true };
+  }
+
+  // Verifica el checksum de un evento de Wompi: valores de signature.properties + timestamp + events secret
+  verifyWompiEventSignature(eventData: any): boolean {
+    const secret = process.env.WOMPI_EVENTS_SECRET;
+    if (!secret) {
+      this.logger.error('WOMPI_EVENTS_SECRET no configurado; se rechaza el evento');
+      return false;
+    }
+    const properties: string[] | undefined = eventData?.signature?.properties;
+    const checksum: string | undefined = eventData?.signature?.checksum;
+    if (!Array.isArray(properties) || !checksum || eventData?.timestamp === undefined) return false;
+
+    let concatenated = '';
+    for (const prop of properties) {
+      const value = prop.split('.').reduce((acc: any, key) => acc?.[key], eventData?.data);
+      if (value === undefined || value === null) return false;
+      concatenated += String(value);
+    }
+    concatenated += String(eventData.timestamp) + secret;
+
+    const expected = Buffer.from(crypto.createHash('sha256').update(concatenated).digest('hex'));
+    const received = Buffer.from(String(checksum).toLowerCase());
+    return expected.length === received.length && crypto.timingSafeEqual(expected, received);
+  }
+
+  // Respaldo del webhook: consulta la transacción directamente a Wompi y aplica el resultado
+  async confirmTransaction(transactionId: string, authUserId: string) {
+    const base = (process.env.WOMPI_PUBLIC_KEY ?? '').startsWith('pub_test_')
+      ? 'https://sandbox.wompi.co/v1'
+      : 'https://production.wompi.co/v1';
+    const res = await fetch(`${base}/transactions/${encodeURIComponent(transactionId)}`);
+    if (!res.ok) throw new NotFoundException('Transacción no encontrada en Wompi');
+    const transaction = (await res.json())?.data;
+    const reference: string | undefined = transaction?.reference;
+    if (!reference) throw new NotFoundException('Transacción sin referencia');
+
+    // Solo el dueño de la membresía puede confirmar
+    await this.getStatusByReference(reference, authUserId);
+
+    await this.handleWompiWebhook({ event: 'transaction.updated', data: { transaction } });
+    return this.getStatusByReference(reference, authUserId);
+  }
+
+  // Estado de una referencia, solo para el dueño de la membresía
+  async getStatusByReference(reference: string, authUserId: string) {
+    if (!reference.startsWith('ATLETA-GYM-')) throw new NotFoundException('Referencia no válida');
+    const membership = await this.userMembershipRepository.findOne({
+      where: { id: reference.replace('ATLETA-GYM-', '') },
+    });
+    if (!membership) throw new NotFoundException('Transacción no encontrada');
+    if (String(membership.person?.user_id) !== String(authUserId)) {
+      throw new ForbiddenException('No tienes acceso a esta transacción');
+    }
+    return { reference, paymentStatus: membership.paymentStatus, endDate: membership.endDate };
   }
 }

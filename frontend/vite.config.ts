@@ -12,6 +12,9 @@ export default defineConfig({
     },
   },
   server: {
+    // Wompi rechaza redirect-url con localhost/127.0.0.1; lvh.me resuelve a 127.0.0.1.
+    allowedHosts: ['lvh.me'],
+    host: true, // escuchar en IPv4 e IPv6 (lvh.me -> 127.0.0.1)
     // The NestJS API serves its routes at the root (/auth, /users, /people, /roles).
     proxy: {
       '/auth': 'http://localhost:3000',
@@ -20,6 +23,8 @@ export default defineConfig({
       '/roles': 'http://localhost:3000',
       '/platform': 'http://localhost:3000',
       '/me': 'http://localhost:3000',
+      '/user-memberships': 'http://localhost:3000',
+      '/membership-plans': 'http://localhost:3000',
     },
   },
   test: {

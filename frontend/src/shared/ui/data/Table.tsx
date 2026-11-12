@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { AlertTriangle, Inbox, RotateCcw } from 'lucide-react';
@@ -47,11 +48,12 @@ export function Table<T>({
   error = null,
   onRetry,
   emptyIcon = Inbox,
-  emptyTitle = 'Sin resultados',
+  emptyTitle,
   emptyDescription,
   skeletonRows = 5,
   className,
 }: TableProps<T>) {
+  const { t } = useTranslation('gym');
   const frame = cn(
     'overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900',
     className,
@@ -66,7 +68,7 @@ export function Table<T>({
       <div className={frame}>
         <EmptyState
           icon={AlertTriangle}
-          title="No se pudo cargar la información"
+          title={t('ui.loadFailed')}
           description={error}
           action={
             onRetry && (
@@ -75,7 +77,7 @@ export function Table<T>({
                 leftIcon={<RotateCcw className="h-4 w-4" aria-hidden="true" />}
                 onClick={onRetry}
               >
-                Reintentar
+                {t('ui.retry')}
               </Button>
             )
           }
@@ -89,7 +91,7 @@ export function Table<T>({
       <div className={frame}>
         <EmptyState
           icon={emptyIcon}
-          title={emptyTitle}
+          title={emptyTitle ?? t('ui.noResults')}
           description={emptyDescription}
         />
       </div>

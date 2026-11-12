@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Compass } from 'lucide-react';
 import { EmptyState, Button } from '@/shared';
 
 /** Ruta inexistente. */
 export function NotFoundPage() {
+  const { t } = useTranslation('gym');
   const navigate = useNavigate();
 
   return (
@@ -11,15 +13,15 @@ export function NotFoundPage() {
       <p className="text-6xl font-bold text-brand-600 dark:text-brand-400">404</p>
       <EmptyState
         icon={Compass}
-        title="Página no encontrada"
-        description="La ruta que buscas no existe o fue movida a otra sección."
+        title={t('notFound.title')}
+        description={t('notFound.description')}
         action={
           <Button
             variant="outline"
             leftIcon={<ArrowLeft className="h-4 w-4" aria-hidden="true" />}
             onClick={() => navigate('/')}
           >
-            Volver al inicio
+            {t('notFound.back')}
           </Button>
         }
       />

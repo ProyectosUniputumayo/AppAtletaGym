@@ -1,6 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Dumbbell, IdCard, Lock, Mail, MapPin, Phone, User } from 'lucide-react';
+import { IdCard, Lock, Mail, MapPin, Phone, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import api, { getApiErrorMessage } from '@/lib/api';
 import { useToast, Button, Input, Select, Card, CardContent, CardHeader, CardTitle, FadeIn } from '@/shared';
@@ -35,6 +36,7 @@ const EMPTY_FORM: RegisterForm = {
  * token, así que tras el registro se hace auto-login y se entra al Inicio.
  */
 export function RegisterPage() {
+  const { t } = useTranslation('gym');
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
@@ -52,16 +54,16 @@ export function RegisterPage() {
 
   function validate(): string | null {
     if (!form.firstName.trim() || !form.firstLastName.trim()) {
-      return 'El nombre y el apellido son obligatorios.';
+      return t('register.errName');
     }
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      return 'Ingresa un correo electrónico válido.';
+      return t('register.errEmail');
     }
     if (form.password.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres.';
+      return t('register.errPasswordLen');
     }
     if (form.password !== form.confirmPassword) {
-      return 'Las contraseñas no coinciden.';
+      return t('register.errPasswordMatch');
     }
     return null;
   }
@@ -94,41 +96,44 @@ export function RegisterPage() {
       // Auto-login: el registro no devuelve token.
       try {
         await login(form.email.trim(), form.password);
-        toast.success('¡Cuenta creada! Bienvenido a Atleta x Gym');
+        toast.success(t('register.success'));
         navigate('/', { replace: true });
       } catch {
-        toast.info('Cuenta creada. Inicia sesión para continuar.');
+        toast.info(t('register.createdLogin'));
         navigate('/login', { replace: true });
       }
     } catch (err) {
-      setError(getApiErrorMessage(err, 'No se pudo crear la cuenta. Intenta de nuevo.'));
+      setError(getApiErrorMessage(err, t('register.failed')));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10 dark:bg-gray-950">
-      <FadeIn>
-        <Card className="w-full max-w-lg">
+    <div className="relative flex min-h-screen items-center justify-center bg-gray-950 px-4 py-10">
+      <div className="absolute inset-0 z-0 bg-gray-950/90" />
+      <div
+        className="absolute inset-0 z-[1] bg-no-repeat"
+        style={{ backgroundImage: "url('/logo-dark.png')", backgroundSize: '75%', backgroundPosition: 'center 40%' }}
+      />
+      <FadeIn className="relative z-10 w-full max-w-lg">
+        <Card className="w-full max-w-lg bg-white/95 dark:bg-gray-900/95 backdrop-blur">
         <CardHeader>
           <div className="mb-3 flex items-center justify-center gap-2">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600 text-white">
-              <Dumbbell className="h-6 w-6" aria-hidden="true" />
-            </span>
+            <img src="/logo.png" alt="Atleta x Gym" className="h-11 w-11 rounded-xl object-contain" />
           </div>
           <CardTitle className="justify-center text-center text-xl">
-            Crea tu cuenta
+            {t('register.title')}
           </CardTitle>
           <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
-            Únete a Atleta x Gym como atleta
+            {t('register.subtitle')}
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
-                label="Nombre"
+                label={t('register.firstName')}
                 required
                 autoComplete="given-name"
                 placeholder="Marlon"
@@ -137,7 +142,7 @@ export function RegisterPage() {
                 onChange={(e) => set('firstName', e.target.value)}
               />
               <Input
-                label="Apellido"
+                label={t('register.lastName')}
                 required
                 autoComplete="family-name"
                 placeholder="Moncayo"
@@ -148,7 +153,7 @@ export function RegisterPage() {
             </div>
 
             <Input
-              label="Documento de identidad (cédula)"
+              label={t('register.document')}
               autoComplete="off"
               inputMode="numeric"
               maxLength={30}
@@ -159,7 +164,7 @@ export function RegisterPage() {
             />
 
             <Input
-              label="Correo electrónico"
+              label={t('register.email')}
               type="email"
               required
               autoComplete="email"
@@ -171,22 +176,22 @@ export function RegisterPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
-                label="Contraseña"
+                label={t('register.password')}
                 type="password"
                 required
                 minLength={6}
                 autoComplete="new-password"
-                placeholder="Mínimo 6 caracteres"
+                placeholder={t('register.passwordPlaceholder')}
                 icon={<Lock className="h-4 w-4" aria-hidden="true" />}
                 value={form.password}
                 onChange={(e) => set('password', e.target.value)}
               />
               <Input
-                label="Confirmar contraseña"
+                label={t('register.confirmPassword')}
                 type="password"
                 required
                 autoComplete="new-password"
-                placeholder="Repite la contraseña"
+                placeholder={t('register.confirmPlaceholder')}
                 icon={<Lock className="h-4 w-4" aria-hidden="true" />}
                 value={form.confirmPassword}
                 onChange={(e) => set('confirmPassword', e.target.value)}
@@ -195,7 +200,7 @@ export function RegisterPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
-                label="Celular (opcional)"
+                label={t('register.cellphone')}
                 autoComplete="tel"
                 inputMode="tel"
                 maxLength={20}
@@ -205,19 +210,19 @@ export function RegisterPage() {
                 onChange={(e) => set('cellphone', e.target.value)}
               />
               <Select
-                label="Género (opcional)"
+                label={t('register.gender')}
                 value={form.gender}
                 onChange={(e) => set('gender', e.target.value)}
               >
-                <option value="">Prefiero no decir</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Otro">Otro</option>
+                <option value="">{t('register.genderNone')}</option>
+                <option value="Masculino">{t('register.genderMale')}</option>
+                <option value="Femenino">{t('register.genderFemale')}</option>
+                <option value="Otro">{t('register.genderOther')}</option>
               </Select>
             </div>
 
             <Input
-              label="Dirección (opcional)"
+              label={t('register.address')}
               autoComplete="street-address"
               maxLength={255}
               placeholder="Calle Principal #123, Mocoa"
@@ -236,16 +241,16 @@ export function RegisterPage() {
             )}
 
             <Button type="submit" size="lg" className="w-full" isLoading={submitting}>
-              Crear cuenta
+              {t('register.submit')}
             </Button>
 
             <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-              ¿Ya tienes cuenta?{' '}
+              {t('register.haveAccount')}{' '}
               <Link
                 to="/login"
                 className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
               >
-                Inicia sesión
+                {t('register.login')}
               </Link>
             </p>
           </form>

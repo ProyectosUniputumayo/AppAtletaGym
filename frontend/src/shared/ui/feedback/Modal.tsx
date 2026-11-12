@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { type ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
@@ -42,6 +43,7 @@ export function Modal({
   children,
   footer,
 }: ModalProps) {
+  const { t } = useTranslation('gym');
   const isDrawer = variant === 'drawer';
 
   return (
@@ -70,7 +72,7 @@ export function Modal({
           <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-800">
             <div className="min-w-0">
               <Dialog.Title className={cn('truncate text-base font-semibold text-gray-900 dark:text-gray-100', !title && 'sr-only')}>
-                {title || 'Diálogo'}
+                {title || t('ui.dialog')}
               </Dialog.Title>
               {subtitle && (
                 <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
@@ -80,7 +82,7 @@ export function Modal({
               <button
                 type="button"
                 className="shrink-0 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                aria-label="Cerrar"
+                aria-label={t('ui.close')}
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>

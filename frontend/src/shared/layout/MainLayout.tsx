@@ -1,12 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Dumbbell, LayoutDashboard, LogOut, Moon, Sun, Users } from 'lucide-react';
+import { LayoutDashboard, LogOut, Moon, Sun, Users, CreditCard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { LanguageSelector } from '@/shared/layout/LanguageSelector';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
-  label: string;
+  labelKey: string;
   to: string;
   end?: boolean;
   /** Permiso requerido para ver el enlace (se resuelve con los roles del JWT). */
@@ -20,8 +21,9 @@ interface NavItem {
  * en `src/pages/<modulo>/`.
  */
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Inicio', to: '/', end: true, icon: LayoutDashboard },
-  { label: 'Usuarios', to: '/users', permission: 'users:*', icon: Users },
+  { labelKey: 'nav.home', to: '/', end: true, icon: LayoutDashboard },
+  { labelKey: 'nav.membership', to: '/my-membership', icon: CreditCard },
+  { labelKey: 'nav.users', to: '/users', permission: 'users:*', icon: Users },
 ];
 
 /**
@@ -29,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
  * idioma, tema, sesión) + área de contenido con `<Outlet/>`.
  */
 export function MainLayout() {
+  const { t } = useTranslation('gym');
   const { user, logout, hasPermission } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -46,9 +49,7 @@ export function MainLayout() {
       <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-4 px-4 sm:gap-6 sm:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white">
-              <Dumbbell className="h-5 w-5" aria-hidden="true" />
-            </span>
+            <img src="/logo.png" alt="Atleta x Gym" className="h-9 w-9 rounded-xl object-contain" />
             <span className="hidden text-base font-bold tracking-tight sm:block">
               Atleta x Gym
             </span>
@@ -70,7 +71,7 @@ export function MainLayout() {
                 }
               >
                 <item.icon className="h-4 w-4" aria-hidden="true" />
-                {item.to === '/' && !isAdmin ? 'Mi cuenta' : item.label}
+                {item.to === '/' && !isAdmin ? t('nav.account') : t(item.labelKey)}
               </NavLink>
             ))}
           </nav>
@@ -80,7 +81,7 @@ export function MainLayout() {
             <button
               type="button"
               onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+              aria-label={theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}
               className="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               {theme === 'dark' ? (
@@ -99,7 +100,7 @@ export function MainLayout() {
               className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Salir</span>
+              <span className="hidden sm:inline">{t('nav.exit')}</span>
             </button>
           </div>
         </div>
