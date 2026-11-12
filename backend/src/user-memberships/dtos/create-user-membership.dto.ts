@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsUUID, IsEmail, IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsUUID, IsEmail, IsOptional, IsString, IsBoolean, IsIn } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserMembershipDto {
@@ -38,7 +38,7 @@ export class CreateUserMembershipDto {
   isStudentDiscount?: boolean;
 
   @ApiPropertyOptional({ description: 'Tipo de pago: "wompi" (online) o "manual" (efectivo/nequi en recepción)' })
-  @IsString()
+  @IsIn(['wompi', 'manual'])
   @IsOptional()
   paymentType?: 'wompi' | 'manual';
 }

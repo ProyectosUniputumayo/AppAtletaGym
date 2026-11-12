@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, CircleUser, ShieldCheck, UserRound, Users } from 'lucide-react';
@@ -12,6 +13,7 @@ interface CountRow {
 
 /** Panel de inicio: KPIs reales del sistema + acceso rápido a los módulos. */
 export function DashboardPage() {
+  const { t } = useTranslation('gym');
   const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
 
@@ -35,28 +37,28 @@ export function DashboardPage() {
 
   const stats: StatItem[] = [
     {
-      label: 'Usuarios',
+      label: t('dashboard.users'),
       value: usersQuery.data?.length ?? '—',
       icon: Users,
       hint: usersQuery.isError
-        ? getApiErrorMessage(usersQuery.error, 'No disponible')
-        : 'Cuentas registradas',
+        ? getApiErrorMessage(usersQuery.error, t('dashboard.unavailable'))
+        : t('dashboard.usersHint'),
     },
     {
-      label: 'Roles',
+      label: t('dashboard.roles'),
       value: rolesQuery.data?.length ?? '—',
       icon: ShieldCheck,
       hint: rolesQuery.isError
-        ? getApiErrorMessage(rolesQuery.error, 'No disponible')
-        : 'Permisos del sistema',
+        ? getApiErrorMessage(rolesQuery.error, t('dashboard.unavailable'))
+        : t('dashboard.rolesHint'),
     },
     {
-      label: 'Personas',
+      label: t('dashboard.people'),
       value: peopleQuery.data?.length ?? '—',
       icon: UserRound,
       hint: peopleQuery.isError
-        ? 'Requiere permisos de Admin'
-        : 'Perfiles de atletas',
+        ? t('dashboard.adminRequired')
+        : t('dashboard.peopleHint'),
     },
   ];
 
@@ -66,15 +68,15 @@ export function DashboardPage() {
     <FadeIn>
       <div className="space-y-6">
       <PageHeader
-        title="Inicio"
-        subtitle="Resumen general del sistema"
+        title={t('dashboard.title')}
+        subtitle={t('dashboard.subtitle')}
         actions={
           canManageUsers && (
             <Button
               leftIcon={<Users className="h-4 w-4" aria-hidden="true" />}
               onClick={() => navigate('/users')}
             >
-              Gestionar usuarios
+              {t('dashboard.manageUsers')}
             </Button>
           )
         }
@@ -89,12 +91,12 @@ export function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle icon={CircleUser} tone="emerald">
-            Tu cuenta
+            {t('dashboard.yourAccount')}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Sesión activa como</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.activeSession')}</p>
             <p className="truncate font-medium text-gray-900 dark:text-gray-100">
               {user?.email}
             </p>
@@ -115,7 +117,7 @@ export function DashboardPage() {
               rightIcon={<ArrowRight className="h-4 w-4" aria-hidden="true" />}
               onClick={() => navigate('/users')}
             >
-              Ir a usuarios
+              {t('dashboard.goUsers')}
             </Button>
           )}
         </CardContent>

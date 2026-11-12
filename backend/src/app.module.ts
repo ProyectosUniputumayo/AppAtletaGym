@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/constants.js';
 import { UsersModule } from './users/users.module.js';
 import { RolesModule } from './roles/roles.module.js';
@@ -8,7 +9,8 @@ import { PeopleModule } from './people/people.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { MembershipPlansModule } from './membership-plans/membership-plans.module.js';
 import { UserMembershipsModule } from './user-memberships/user-memberships.module.js';
-import { MongooseModule } from '@nestjs/mongoose';
+import { DatabaseSeeder } from './database/database.seeder.js';
+import { I18nModule } from './i18n/i18n.module.js';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGODB_URI') || 'mongodb://localhost:27017/atleta-gym-db',
+        lazyConnection: true,
       }),
       inject: [ConfigService],
     }),
@@ -44,8 +47,9 @@ import { MongooseModule } from '@nestjs/mongoose';
     AuthModule,
     MembershipPlansModule,
     UserMembershipsModule,
+    I18nModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [DatabaseSeeder],
 })
 export class AppModule {}

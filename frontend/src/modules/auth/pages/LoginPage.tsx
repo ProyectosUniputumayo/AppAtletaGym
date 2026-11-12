@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Dumbbell, Lock, Mail } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getApiErrorMessage } from '@/lib/api';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/shared';
@@ -8,6 +9,7 @@ import { FadeIn } from '@/shared';
 
 /** Inicio de sesión contra POST /auth/login del backend. */
 export function LoginPage() {
+  const { t } = useTranslation('gym');
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,33 +32,36 @@ export function LoginPage() {
       await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(getApiErrorMessage(err, 'No se pudo iniciar sesión. Revisa tus credenciales.'));
+      setError(getApiErrorMessage(err, t('login.error')));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10 dark:bg-gray-950">
-      <FadeIn>
-        <Card className="w-full max-w-md">
+    <div className="relative flex min-h-screen items-center justify-center bg-gray-950 px-4 py-10">
+      <div className="absolute inset-0 z-0 bg-gray-950/90" />
+      <div
+        className="absolute inset-0 z-[1] bg-no-repeat"
+        style={{ backgroundImage: "url('/logo-dark.png')", backgroundSize: '75%', backgroundPosition: 'center 40%' }}
+      />
+      <FadeIn className="relative z-10 w-full max-w-md">
+        <Card className="w-full max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur">
         <CardHeader>
           <div className="mb-3 flex items-center justify-center gap-2">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600 text-white">
-              <Dumbbell className="h-6 w-6" aria-hidden="true" />
-            </span>
+            <img src="/logo.png" alt="Atleta x Gym" className="h-11 w-11 rounded-xl object-contain" />
           </div>
           <CardTitle className="justify-center text-center text-xl">
-            Inicia sesión en Atleta x Gym
+            {t('login.title')}
           </CardTitle>
           <p className="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">
-            Gestión de atletas, usuarios y roles del gimnasio
+            {t('login.subtitle')}
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4" noValidate={false}>
             <Input
-              label="Correo electrónico"
+              label={t('login.email')}
               type="email"
               autoComplete="email"
               required
@@ -66,7 +71,7 @@ export function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
             <Input
-              label="Contraseña"
+              label={t('login.password')}
               type="password"
               autoComplete="current-password"
               required
@@ -83,16 +88,16 @@ export function LoginPage() {
             )}
 
             <Button type="submit" size="lg" className="w-full" isLoading={submitting}>
-              Entrar
+              {t('login.submit')}
             </Button>
 
             <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-              ¿No tienes cuenta?{' '}
+              {t('login.noAccount')}{' '}
               <Link
                 to="/register"
                 className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
               >
-                Regístrate
+                {t('login.register')}
               </Link>
             </p>
           </form>

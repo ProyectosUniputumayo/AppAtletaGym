@@ -3,6 +3,8 @@ import { RouteErrorBoundary, ProtectedRoute, HomeRoute, MainLayout } from '@/sha
 import LoginPage from '../modules/auth/pages/LoginPage'
 import RegisterPage from '../modules/auth/pages/RegisterPage'
 import UsersListPage from '../modules/users/pages/UsersListPage'
+import MyMembershipPage from '../modules/memberships/pages/MyMembershipPage'
+import PaymentResultPage from '../modules/memberships/pages/PaymentResultPage'
 import NotFoundPage from '../modules/notfound/pages/NotFoundPage'
 
 /**
@@ -26,6 +28,8 @@ function App() {
             <Route element={<MainLayout />}>
               <Route index element={<HomeRoute />} />
               <Route path="users" element={<UsersListPage />} />
+              <Route path="my-membership" element={<MyMembershipPage />} />
+              <Route path="payments/success" element={<PaymentResultPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Route>

@@ -116,3 +116,21 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Atleta x Gym - Backend
+
+### Variables de entorno (.env)
+DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_DATABASE, JWT_SECRET, WOMPI_PUBLIC_KEY, WOMPI_INTEGRITY_SECRET, FRONTEND_URL
+
+### Roles
+- SuperAdmin: gestión global
+- Admin: operación
+- User: consulta/compra de membresía
+
+### Seeding
+Al ejecutar npm start se siembran roles, planes, usuarios demo y membresías si faltan.
+
+### Ejecutar
+
+pm install`n
+pm start`n

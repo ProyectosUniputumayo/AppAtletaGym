@@ -1,7 +1,10 @@
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { BadgeCheck, CalendarDays, Mail, UserRound } from 'lucide-react';
 import api, { getApiErrorMessage } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import type { Membership } from '../../memberships/components/MembershipHero';
 import { PageHeader, Card, CardContent, CardHeader, CardTitle, Badge, Skeleton, EmptyState, FadeIn } from '@/shared';
 
 interface PersonProfile {
@@ -36,6 +39,17 @@ function ProfileRow({ label, value }: { label: string; value?: string | null }) 
 export function MemberHomePage() {
   const { user } = useAuth();
 
+  const { t } = useTranslation('gym');
+  const membershipQuery = useQuery<Membership[]>({
+    queryKey: ['my-membership-history'],
+    queryFn: async () => (await api.get('/user-memberships/me/history')).data,
+    retry: 0,
+  });
+  // Solo cuenta una membresía pagada y vigente
+  const membership = (membershipQuery.data ?? [])
+    .filter((m) => m.paymentStatus === 'paid' && new Date(m.endDate).getTime() > Date.now())
+    .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime())[0];
+
   const personQuery = useQuery({
     queryKey: ['person', user?.id],
     queryFn: async () => (await api.get<PersonProfile>(`/people/user/${user?.id}`)).data,
@@ -49,7 +63,7 @@ export function MemberHomePage() {
   return (
     <FadeIn>
       <div className="space-y-6">
-        <PageHeader title="Mi cuenta" subtitle="Bienvenido a Atleta x Gym" />
+        <PageHeader title={t('home.pageTitle')} subtitle={t('home.pageSubtitle')} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2 overflow-hidden">
@@ -60,7 +74,7 @@ export function MemberHomePage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold tracking-tight text-black dark:text-white">
-                  {person ? `${person.firstName} ${person.firstLastName}` : 'Mi perfil'}
+                  {person ? `${person.firstName} ${person.firstLastName}` : t('home.profile')}
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
               </div>
@@ -76,21 +90,21 @@ export function MemberHomePage() {
             ) : notFound ? (
               <EmptyState
                 icon={UserRound}
-                title="Aún no tienes un perfil"
-                description="Pide en recepción que completen tu información personal."
+                title={t('home.noProfile')}
+                description={t('home.noProfileDesc')}
               />
             ) : personQuery.isError ? (
               <p className="text-sm text-red-600 dark:text-red-400">
-                {getApiErrorMessage(personQuery.error, 'No se pudo cargar tu perfil')}
+                {getApiErrorMessage(personQuery.error, t('home.profileError'))}
               </p>
             ) : (
               <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-                <ProfileRow label="Nombre" value={person?.firstName} />
-                <ProfileRow label="Apellido" value={person?.firstLastName} />
-                <ProfileRow label="Documento" value={person?.documentNumber} />
-                <ProfileRow label="Celular" value={person?.cellphone} />
-                <ProfileRow label="Género" value={person?.gender} />
-                <ProfileRow label="Dirección" value={person?.address} />
+                <ProfileRow label={t('home.firstName')} value={person?.firstName} />
+                <ProfileRow label={t('home.lastName')} value={person?.firstLastName} />
+                <ProfileRow label={t('home.document')} value={person?.documentNumber} />
+                <ProfileRow label={t('home.cellphone')} value={person?.cellphone} />
+                <ProfileRow label={t('home.gender')} value={person?.gender} />
+                <ProfileRow label={t('home.address')} value={person?.address} />
               </dl>
             )}
           </CardContent>
@@ -100,7 +114,7 @@ export function MemberHomePage() {
           <Card>
             <CardHeader>
               <CardTitle icon={Mail} tone="brand">
-                Mi cuenta
+                {t('home.account')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -115,7 +129,7 @@ export function MemberHomePage() {
               {person?.isStudentDiscount && (
                 <Badge variant="green">
                   <BadgeCheck className="mr-1 h-3 w-3" aria-hidden="true" />
-                  Convenio UniPutumayo
+                  {t('home.agreement')}
                 </Badge>
               )}
             </CardContent>
@@ -124,13 +138,26 @@ export function MemberHomePage() {
           <Card>
             <CardHeader>
               <CardTitle icon={CalendarDays} tone="amber">
-                Mi membresía
+                {t('home.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Próximamente podrás ver y renovar tu membresía desde aquí.
-              </p>
+              {membership ? (
+                <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
+                  <p className="font-semibold">{membership.membershipPlan?.name}</p>
+                  <p>{t(`status.${membership.paymentStatus}`, { defaultValue: membership.paymentStatus })}</p>
+                  {membership.paymentStatus === 'paid' && (
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {t('home.expiresOn', { date: new Date(membership.endDate).toLocaleDateString() })}
+                    </p>
+                  )}
+                  <Link to="/my-membership" className="text-amber-600 hover:underline">{t('home.viewRenew')}</Link>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {t('home.none')} <Link to="/my-membership" className="text-amber-600 hover:underline">{t('home.acquire')}</Link>
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
 import { UserMembershipsController } from './user-memberships.controller.js';
+import { PaymentsWebhookController } from './payments-webhook.controller.js';
 import { UserMembershipsService } from './user-memberships.service.js';
 import { UserMembershipEntity } from './entities/user-membership.entity.js';
 import { MembershipPlanEntity } from '../membership-plans/entities/membership-plan.entity.js';
@@ -20,14 +20,10 @@ import { PaymentsAuditModule } from '../payments-audit/payments-audit.module.js'
       UserEntity,
       UserRoleEntity,
     ]),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret',
-      signOptions: { expiresIn: '1d' },
-    }),
     AuthModule,
-    PaymentsAuditModule, 
+    PaymentsAuditModule,
   ],
-  controllers: [UserMembershipsController],
+  controllers: [UserMembershipsController, PaymentsWebhookController],
   providers: [UserMembershipsService],
   exports: [UserMembershipsService],
 })

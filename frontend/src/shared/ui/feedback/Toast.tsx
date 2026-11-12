@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /* eslint-disable react/only-export-components */
 import {
   createContext,
@@ -31,6 +32,7 @@ const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 const AUTO_DISMISS_MS = 4500;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation('gym');
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const idRef = useRef(0);
 
@@ -97,7 +99,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={() => dismiss(toast.id)}
                 className="rounded-md p-0.5 text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-200"
-                aria-label="Cerrar notificación"
+                aria-label={t('ui.closeNotification')}
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>

@@ -1,16 +1,14 @@
 import i18n from 'i18next';
+import type { BackendModule } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import es from './locales/es.json';
-import en from './locales/en.json';
-import fr from './locales/fr.json';
-import pt from './locales/pt.json';
+import api from '@/lib/api';
 
 /**
- * Idiomas soportados. Los BASE traen traducciones propias; las VARIANTES
- * (es-CO, es-MX, es-GT…) reutilizan la traducción base por `nonExplicitSupportedLngs`
- * y solo cambian el formato de fecha/número (locale de Intl). Añadir una variante
- * nueva = agregar una entrada aquí (y, si se quiere, overrides en un JSON propio).
+ * Idiomas conocidos por la interfaz (para detección y como respaldo del
+ * selector si el backend no responde). Los TEXTOS de la interfaz ya no viven
+ * en el frontend: se cargan de la base de datos vía `GET /platform/translations`.
+ * Las variantes (es-CO, es-MX…) heredan del idioma base en el backend.
  */
 export interface LanguageOption {
   code: string;
@@ -28,27 +26,38 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   { code: 'pt', label: 'Português', flag: '🇧🇷' },
 ];
 
-const resources = {
-  es: { common: es.common, layout: es.layout, auth: es.auth },
-  en: { common: en.common, layout: en.layout, auth: en.auth },
-  fr: { common: fr.common, layout: fr.layout, auth: fr.auth },
-  pt: { common: pt.common, layout: pt.layout, auth: pt.auth },
+export const NAMESPACES = ['gym'] as const;
+
+/** Carga los textos desde el backend (tabla `translations`). */
+const apiBackend: BackendModule = {
+  type: 'backend',
+  init() {},
+  read(language, namespace, callback) {
+    api
+      .get<Record<string, string>>(`/platform/translations/${encodeURIComponent(language)}/${encodeURIComponent(namespace)}`)
+      .then((res) => {
+        const data: unknown = res.data;
+        // En dev, rutas sin proxy devuelven index.html con HTTP 200: se descarta.
+        if (!data || typeof data !== 'object') throw new Error('Respuesta de traducciones inválida');
+        callback(null, data as Record<string, string>);
+      })
+      .catch((err: unknown) => callback(err as Error, null));
+  },
 };
 
-export const NAMESPACES = ['common', 'layout', 'auth'] as const;
-
 void i18n
+  .use(apiBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources,
     fallbackLng: 'es',
     supportedLngs: SUPPORTED_LANGUAGES.map((l) => l.code),
-    // Variantes (es-CO) caen a la base (es) si no tienen recursos propios.
     nonExplicitSupportedLngs: true,
     load: 'currentOnly',
     ns: NAMESPACES as unknown as string[],
-    defaultNS: 'common',
+    defaultNS: 'gym',
+    // Las claves del backend son planas ("nav.home"): sin separador de claves.
+    keySeparator: false,
     detection: {
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: 'talentos.lang',
@@ -56,6 +65,7 @@ void i18n
     },
     interpolation: { escapeValue: false },
     returnNull: false,
+    react: { useSuspense: true },
   });
 
 /** Cambia el idioma y lo persiste (para el header <html lang>). */
@@ -65,7 +75,3 @@ export function changeLanguage(code: string): void {
 }
 
 export default i18n;
-
-
-
-

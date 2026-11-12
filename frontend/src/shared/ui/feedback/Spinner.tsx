@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -13,9 +14,10 @@ const sizeClasses: Record<NonNullable<SpinnerProps['size']>, string> = {
 };
 
 export function Spinner({ size = 'md', className }: SpinnerProps) {
+  const { t } = useTranslation('gym');
   return (
     <Loader2
-      aria-label="Cargando"
+      aria-label={t('ui.loading')}
       role="status"
       className={cn('animate-spin text-brand-600 dark:text-brand-400', sizeClasses[size], className)}
     />
